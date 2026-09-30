@@ -148,7 +148,7 @@ exports.ProcessOrder = function () {
         response.writer.print(JSON.stringify({ success: true }));
 
     } catch (e) {
-        Logger.error('Order processing error: ' + e.message);
+        Logger.getLogger('order-custom', 'order-processing').error('Order processing error: {0}', e.message);
         response.setStatus(500);
         response.setContentType('application/json');
         response.writer.print(JSON.stringify({
@@ -284,7 +284,7 @@ exports.AddToCart = function () {
         });
 
     } catch (e) {
-        Logger.error('Add to cart error: ' + e.message);
+        Logger.getLogger('cart-custom', 'basket-processing').error('Add to cart error: {0}', e.message);
         sendJSON({ success: false, error: 'Unable to add to cart' }, 500);
     }
 };

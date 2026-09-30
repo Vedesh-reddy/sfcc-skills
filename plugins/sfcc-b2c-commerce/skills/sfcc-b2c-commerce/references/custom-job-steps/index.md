@@ -182,7 +182,7 @@ var Logger = require('dw/system/Logger');
  * @returns {dw.system.Status} Execution status
  */
 exports.execute = function (parameters, stepExecution) {
-    var log = Logger.getLogger('job', 'MyTaskStep');
+    var log = Logger.getLogger('my-task-step', 'job-processing');
 
     try {
         var inputFile = parameters.InputFile;
@@ -257,7 +257,7 @@ var Logger = require('dw/system/Logger');
 var File = require('dw/io/File');
 var FileWriter = require('dw/io/FileWriter');
 
-var log = Logger.getLogger('job', 'MyChunkStep');
+var log = Logger.getLogger('my-chunk-step', 'job-processing');
 var products;
 var fileWriter;
 

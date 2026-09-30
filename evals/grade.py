@@ -36,6 +36,10 @@ def check(c):
     flags = re.I if c.get("ignore_case") else 0
     if kind == "file_glob":
         return bool(fs), "" if fs else "no matching file"
+    if kind in ("standards", "comment_ratio") and not fs:
+        fs = [os.path.join(args.work, c["glob"])] if os.path.exists(os.path.join(args.work, c["glob"])) else []
+    if kind == "comment_ratio" and os.path.isdir(fs[0] if fs else ""):
+        fs = [f for f in glob.glob(os.path.join(fs[0], "**", "*.js"), recursive=True)]
     if not fs and kind not in ("dw_api",):
         return False, "no matching file"
     if kind == "regex":
@@ -56,6 +60,19 @@ def check(c):
     if kind == "dw_api":
         target = os.path.join(args.work, c["glob"])
         return run([sys.executable, os.path.join(REPO, "scripts", "check_dw_api.py"), args.types, target])
+    if kind == "standards":
+        return run([sys.executable, os.path.join(REPO, "scripts", "check_standards.py"), os.path.join(args.work, c["glob"])])
+    if kind == "comment_ratio":
+        code = comments = 0
+        for f in fs:
+            if not f.endswith(".js"): continue
+            for line in read(f).splitlines():
+                s = line.strip()
+                if not s: continue
+                code += 1
+                if s.startswith(("//", "/*", "*")): comments += 1
+        ratio = comments / code if code else 0
+        return ratio <= c["max"], f"{ratio:.0%} comment lines"
     if kind == "unchanged":
         return read(fs[0]) == read(os.path.join(HERE, c["fixture"])), "file was modified"
     return False, "unknown check " + kind

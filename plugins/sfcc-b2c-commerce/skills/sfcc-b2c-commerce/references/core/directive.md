@@ -1,5 +1,7 @@
 # Governing SFCC B2C Commerce directive
 
+> **Bootstrap note:** SFRA ships Bootstrap 4, which has no `w-0` or `p-100` utilities. Where this directive lists them, use them only if the project defines them; otherwise use the nearest real utility (see `scss-ui.md`).
+>
 > `app_<brand>` stands for your project's custom storefront cartridge (the one left of `app_storefront_base` on the cartridge path). Substitute the real name when you apply this directive.
  
 This directive governs all code edits, refactors, plans, reviews, tool calls, and architectural decisions in this repository. It records the repository owner's engineering instructions for future sessions.

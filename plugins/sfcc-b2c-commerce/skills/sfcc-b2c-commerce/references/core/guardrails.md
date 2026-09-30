@@ -31,6 +31,7 @@
 
 - Page cache (`cache.applyDefaultCache`, `<iscache>`) is for anonymous, non-personalized output only. Personalized fragments go in a separate remote include that isn't cached (or is cached per the right key).
 - Never page-cache responses containing prices after customer-group promotions, basket data, CSRF tokens, or customer data.
+- Add caching only with a measured need or explicit requirement (directive: no speculative caching).
 - Custom caches (`CacheMgr`, `caches.json` at the cartridge root) are per app server, size-limited, not shared, and can be evicted at any time: an optimization, never the source of truth. Don't cache failures (return `undefined` from the loader).
 
 ## 5. Authorization and input

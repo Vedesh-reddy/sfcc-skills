@@ -5,7 +5,10 @@ Answer each line for the code you just wrote. Any "no" is a defect to fix, not a
 **Directive**
 - [ ] No Git action was performed or suggested; work stops at the working-tree change.
 - [ ] Smallest safe diff: nothing that could be deleted, reused or configured instead; base/vendor cartridges untouched.
-- [ ] Loggers are `getLogger('kebab-prefix', 'kebab-category')`; new selectors kebab-case; no CSS Grid; accessibility intact.
+- [ ] Loggers are `getLogger('kebab-prefix', 'kebab-category')` (prefix 3–25 chars, unique first word); no static `Logger.info/…`.
+- [ ] New classes/IDs kebab-case; layout via Bootstrap utilities, not SCSS; no CSS Grid; `~base/` import aliases; only utilities that exist (`scss-ui.md`).
+- [ ] Semantic buttons/links, `alt` on images, labels on fields, visible focus.
+- [ ] Comments are few and explain *why*; nothing copied from reference teaching comments; no cache, flag, mock or option without a stated requirement.
 
 **Runtime**
 - [ ] The file's runtime is identified from its path (`runtimes.md`), and it uses only that runtime's APIs.

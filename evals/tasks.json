@@ -67,6 +67,17 @@
           "pattern": "Logger\\.getLogger\\((?!\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*,\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*\\))",
           "desc": "loggers are getLogger('kebab-prefix', 'kebab-category') (directive)",
           "glob": "out/01/**/cartridge/**/*.js"
+        },
+        {
+          "type": "standards",
+          "glob": "out/01",
+          "desc": "directive standards: loggers, Grid, layout rules, aliases, kebab-case, a11y"
+        },
+        {
+          "type": "comment_ratio",
+          "glob": "out/01",
+          "max": 0.2,
+          "desc": "comments are sparse (<= 20% of code lines)"
         }
       ]
     },
@@ -162,6 +173,17 @@
           "pattern": "Logger\\.getLogger\\((?!\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*,\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*\\))",
           "desc": "loggers are getLogger('kebab-prefix', 'kebab-category') (directive)",
           "glob": "out/02/*.js"
+        },
+        {
+          "type": "standards",
+          "glob": "out/02",
+          "desc": "directive standards: loggers, Grid, layout rules, aliases, kebab-case, a11y"
+        },
+        {
+          "type": "comment_ratio",
+          "glob": "out/02",
+          "max": 0.2,
+          "desc": "comments are sparse (<= 20% of code lines)"
         }
       ]
     },
@@ -287,6 +309,17 @@
           "pattern": "Logger\\.getLogger\\((?!\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*,\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*\\))",
           "desc": "loggers are getLogger('kebab-prefix', 'kebab-category') (directive)",
           "glob": "out/04/cartridges/app_custom_store/**/*.js"
+        },
+        {
+          "type": "standards",
+          "glob": "out/04/cartridges/app_custom_store",
+          "desc": "directive standards: loggers, Grid, layout rules, aliases, kebab-case, a11y"
+        },
+        {
+          "type": "comment_ratio",
+          "glob": "out/04/cartridges/app_custom_store",
+          "max": 0.2,
+          "desc": "comments are sparse (<= 20% of code lines)"
         }
       ]
     },
@@ -357,6 +390,91 @@
           "pattern": "Logger\\.getLogger\\((?!\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*,\\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\\s*\\))",
           "desc": "loggers are getLogger('kebab-prefix', 'kebab-category') (directive)",
           "glob": "out/05/**/*.js"
+        },
+        {
+          "type": "standards",
+          "glob": "out/05",
+          "desc": "directive standards: loggers, Grid, layout rules, aliases, kebab-case, a11y"
+        },
+        {
+          "type": "comment_ratio",
+          "glob": "out/05",
+          "max": 0.2,
+          "desc": "comments are sparse (<= 20% of code lines)"
+        }
+      ]
+    },
+    {
+      "id": "06-scss-isml-badge",
+      "title": "Styled, accessible PDP badge (ISML + SCSS)",
+      "prompt": "Copy evals/fixtures/sfra-project to OUT and work there. Add a 'metal purity' badge to the product detail page that shows Product.custom.metalPurity only when it is set: an ISML partial plus its SCSS in app_custom_store, styled with the brand primary color and rounded corners, readable by screen readers. Follow the project's conventions and the governing directive. OUT is out/06.",
+      "expected_sources": [
+        "references/core/scss-ui.md",
+        "references/isml/"
+      ],
+      "checks": [
+        {
+          "type": "file_glob",
+          "glob": "out/06/cartridges/app_custom_store/**/*.isml",
+          "desc": "ISML partial in the custom cartridge"
+        },
+        {
+          "type": "file_glob",
+          "glob": "out/06/cartridges/app_custom_store/**/*.scss",
+          "desc": "SCSS in the custom cartridge"
+        },
+        {
+          "type": "standards",
+          "glob": "out/06/cartridges/app_custom_store",
+          "desc": "directive standards: loggers, Grid, layout rules, aliases, kebab-case, a11y"
+        },
+        {
+          "type": "regex",
+          "glob": "out/06/cartridges/app_custom_store/**/*.isml",
+          "pattern": "metalPurity",
+          "desc": "reads the attribute"
+        },
+        {
+          "type": "regex",
+          "glob": "out/06/cartridges/app_custom_store/**/*.isml",
+          "pattern": "<isif",
+          "desc": "rendered only when set"
+        },
+        {
+          "type": "regex",
+          "glob": "out/06/cartridges/app_custom_store/**/*.isml",
+          "pattern": "\\b(d-flex|d-inline-flex|align-items-\\w+|p[xytblr]?-\\d|m[xytblr]?-\\d)\\b",
+          "desc": "layout/spacing via Bootstrap utilities"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/06/cartridges/app_custom_store/**/*.scss",
+          "pattern": "display\\s*:\\s*(flex|grid)|justify-content|align-items|padding\\s*:\\s*0\\s*;|width\\s*:\\s*100%",
+          "desc": "no SCSS for layout Bootstrap already provides"
+        },
+        {
+          "type": "regex",
+          "glob": "out/06/cartridges/app_custom_store/**/*.scss",
+          "pattern": "\\$(primary|brand[\\w-]*)",
+          "desc": "uses the existing color variable"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/06/cartridges/app_custom_store/**/*.scss",
+          "pattern": "@import\\s+['\"]\\.\\./",
+          "desc": "no relative cross-cartridge import"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/06/cartridges/app_custom_store/**/*.isml",
+          "pattern": "encoding=\"off\"",
+          "desc": "output stays encoded"
+        },
+        {
+          "type": "unchanged",
+          "glob": "out/06/cartridges/app_storefront_base/cartridge/templates/default/product/productDetails.isml",
+          "fixture": "fixtures/sfra-project/cartridges/app_storefront_base/cartridge/templates/default/product/productDetails.isml",
+          "desc": "base template untouched"
         }
       ]
     }

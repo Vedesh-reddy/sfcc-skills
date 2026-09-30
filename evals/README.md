@@ -1,6 +1,6 @@
 # Evals: does the agent pick the right guidance and write correct, secure SFCC code?
 
-Five realistic tasks, each graded by automated checks (schema validation, Script API member checks, syntax, and required/forbidden patterns) plus a "guidance selected" score from the `SOURCES.md` the agent writes.
+Six realistic tasks, each graded by automated checks (schema validation, Script API member checks, syntax, and required/forbidden patterns) plus a "guidance selected" score from the `SOURCES.md` the agent writes.
 
 | # | Task | What it catches |
 |---|---|---|
@@ -9,6 +9,7 @@ Five realistic tasks, each graded by automated checks (schema validation, Script
 | 03 | Custom-attribute metadata XML | `<max-length>`, wrong element order, missing attribute group, wrong import command |
 | 04 | Extend an SFRA controller in an existing project | Copying base controllers, ignoring project conventions, logic in controllers |
 | 05 | Service that masks credentials in logs | Hardcoded keys, missing log callbacks, unmasked headers |
+| 06 | Styled, accessible PDP badge (ISML + SCSS) | SCSS for layout Bootstrap provides, CSS Grid, relative imports, non-kebab classes, unencoded output, touching base templates |
 
 ## Run
 
@@ -20,7 +21,7 @@ scripts/verify.sh --fetch
 evals/run.sh claude
 evals/run.sh codex
 
-# grade outputs you produced some other way (expects <dir>/out/01 ... /out/05)
+# grade outputs you produced some other way (expects <dir>/out/01 ... /out/06)
 python3 evals/grade.py --work <dir>
 ```
 
@@ -32,4 +33,4 @@ python3 evals/grade.py --work <dir>
 
 - A failed **check** is a code defect. A low **guidance selected** score with passing checks means the agent got lucky or knew the answer — look at the router in `SKILL.md`.
 - Checks are necessary, not sufficient. For task 02 also read `REVIEW.md` against the defect list in `fixtures/razorpay-review/EXPECTED.md`.
-- `grade.py` passes 52/52 on reference answers built from `examples/` and fails the unfixed fixture (3/13) — rerun that self-test after changing checks.
+- `grade.py` passes 71/71 on reference answers built from `examples/` and fails the unfixed fixture (5/16) — rerun that self-test after changing checks.

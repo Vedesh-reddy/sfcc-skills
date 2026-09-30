@@ -7,12 +7,6 @@ var page = module.superModule;
 server.extend(page);
 
 // The PDP needs a CSRF token to call DeliveryEstimate-Get.
-server.append('Show', csrfProtection.generateToken, function (req, res, next) {
-    var Site = require('dw/system/Site');
-    var viewData = res.getViewData();
-    viewData.deliveryEstimateEnabled = !!Site.getCurrent().getCustomPreferenceValue('deliveryEstimateEnabled');
-    res.setViewData(viewData);
-    next();
-});
+server.append('Show', csrfProtection.generateToken);
 
 module.exports = server.exports();

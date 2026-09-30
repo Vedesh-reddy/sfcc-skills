@@ -62,7 +62,7 @@ var FTPClient = require('dw/net/FTPClient');
 var File = require('dw/io/File');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'FTPDownload');
+var log = Logger.getLogger('ftp-download', 'job-processing');
 
 exports.execute = function (parameters, stepExecution) {
     var host = parameters.Host;
@@ -116,7 +116,7 @@ var SFTPClient = require('dw/net/SFTPClient');
 var File = require('dw/io/File');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'SFTPUpload');
+var log = Logger.getLogger('sftp-upload', 'job-processing');
 
 exports.execute = function (parameters, stepExecution) {
     var host = parameters.Host;
@@ -162,7 +162,7 @@ var Status = require('dw/system/Status');
 var HTTPClient = require('dw/net/HTTPClient');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'APISync');
+var log = Logger.getLogger('api-sync', 'job-processing');
 
 exports.execute = function (parameters, stepExecution) {
     var apiUrl = parameters.APIUrl;
@@ -206,7 +206,7 @@ var FileReader = require('dw/io/FileReader');
 var FileWriter = require('dw/io/FileWriter');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'FileProcessor');
+var log = Logger.getLogger('file-processor', 'job-processing');
 
 exports.execute = function (parameters, stepExecution) {
     var inputPath = parameters.InputFile;
@@ -254,7 +254,7 @@ var Status = require('dw/system/Status');
 var File = require('dw/io/File');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'FileCleanup');
+var log = Logger.getLogger('file-cleanup', 'job-processing');
 
 exports.execute = function (parameters, stepExecution) {
     var directory = parameters.Directory;

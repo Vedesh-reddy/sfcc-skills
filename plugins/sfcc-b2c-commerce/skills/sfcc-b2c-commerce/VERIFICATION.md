@@ -18,6 +18,7 @@ Re-run everything with `scripts/verify.sh` (add `--fetch` the first time).
 | Every `b2c …` command line + `--flag` | b2c CLI command sources (incl. aliases) | all exist |
 | `steptypes.json` | rules in *Create Custom Job Step Types*; module exports | valid |
 | Decision logic + log masking | unit tests (`examples/test/`) | 12/12 |
+| Directive coding standards (loggers, Grid, Bootstrap-covered layout, import aliases, kebab-case, a11y) | every code sample + example file | 0 violations |
 
 ## Corrections made to upstream content
 
@@ -35,6 +36,17 @@ Re-run everything with `scripts/verify.sh` (add `--fetch` the first time).
 | `references/logging/LOG-FILES.md` | `b2c webdav pull` | `b2c webdav ls/get --root=logs` | CLI source |
 | `references/sites/index.md` | `b2c site-import upload` | `b2c job import` | CLI source |
 | `references/mrt/*` | `env invalidate --path`; `redirect clone --source/--target`; `redirect create --permanent`; "302 is default" | `--pattern` (required); `--from/--to`; `--status 301`; default is 301 | CLI source |
+
+## Directive alignment (2.2.0)
+
+| File | Was | Now |
+|---|---|---|
+| `references/logging/index.md` | static `Logger.info(...)`, single-argument/dotted categories, customer email and SQL in log examples | named `getLogger('kebab-prefix', 'kebab-category')` only; identifiers, never PII |
+| `references/custom-job-steps/*`, `business-manager-extensions/*` | `getLogger('job', 'ProductExport')`, `getLogger('bm', 'ACME')` | `getLogger('product-export', 'job-processing')`, `getLogger('acme-bm-tools', 'bm-extension')` |
+| `references/controllers/*` | static `Logger.error('...' + e.message)` | named logger with `{0}` placeholder |
+| `references/logs/index.md` | CamelCase prefixes in the file-name table | kebab-case, plus the `--filter` first-word caveat (verified in the upstream text) |
+| `references/page-designer/index.md` | BEM classes (`banner__image`) | kebab-case (`banner-image`) |
+| directive | lists `w-0`, `p-100` | note: not in Bootstrap 4; use only if the project defines them |
 
 ## Not verified (treat with care)
 

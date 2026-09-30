@@ -254,25 +254,25 @@ function getColor(colorAttr) {
 ### Component Template (templates/experience/components/banner.isml)
 
 ```html
-<div class="banner ${pdict.fullWidth ? 'banner--full-width' : ''}"
+<div class="banner ${pdict.fullWidth ? 'banner-full-width' : ''}"
      style="text-align: ${pdict.alignment}">
     <isif condition="${pdict.image}">
         <img src="${pdict.image.file.absURL}"
              alt="${pdict.alt}"
-             class="banner__image"/>
+             class="banner-image"/>
     </isif>
 
-    <div class="banner__content">
-        <h2 class="banner__headline">${pdict.headline}</h2>
+    <div class="banner-content">
+        <h2 class="banner-headline">${pdict.headline}</h2>
 
         <isif condition="${pdict.body}">
-            <div class="banner__body">
+            <div class="banner-body">
                 <isprint value="${pdict.body}" encoding="off"/>
             </div>
         </isif>
 
         <isif condition="${pdict.ctaUrl && pdict.ctaText}">
-            <a href="${pdict.ctaUrl}" class="banner__cta btn btn-primary">
+            <a href="${pdict.ctaUrl}" class="banner-cta btn btn-primary">
                 ${pdict.ctaText}
             </a>
         </isif>

@@ -28,9 +28,6 @@ function createService() {
         parseResponse: function (svc, client) {
             return JSON.parse(client.getText());
         },
-        mockCall: function () {
-            return { statusCode: 200, statusMessage: 'OK', text: '{"serviceable":true,"days":3}' };
-        },
         filterLogMessage: maskSecrets,
         getRequestLogMessage: function (request) {
             return maskSecrets(request);

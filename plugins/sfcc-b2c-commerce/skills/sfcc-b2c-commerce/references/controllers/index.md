@@ -257,7 +257,7 @@ server.get('Show', function (req, res, next) {
         }
         res.render('product/detail', { product: product });
     } catch (e) {
-        Logger.error('Product error: ' + e.message);
+        Logger.getLogger('product-custom', 'product-display').error('Product error: {0}', e.message);
         res.setStatusCode(500);
         res.render('error/general');
     }

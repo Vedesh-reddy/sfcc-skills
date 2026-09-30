@@ -6,7 +6,6 @@
 |---|---|---|---|
 | `Product` | `metalPurity` | enum-of-string (916 / 750 / 925) | `../chunk-job/` |
 | `Order` | `razorpayOrderId`, `paymentReconState`, `paymentReconAttempts`, `paymentReconNote` | string / enum / int / string | `../payment-reconciliation/` |
-| `SitePreferences` | `deliveryEstimateEnabled` | boolean | `../controller-helper-service/` |
 
 The file validates against Salesforce's `metadata.xsd`.
 

@@ -58,7 +58,7 @@ var File = require('dw/io/File');
 var FileWriter = require('dw/io/FileWriter');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'ProductExport');
+var log = Logger.getLogger('product-export', 'job-processing');
 var products;
 var writer;
 
@@ -151,7 +151,7 @@ var OrderMgr = require('dw/order/OrderMgr');
 var Transaction = require('dw/system/Transaction');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'OrderProcess');
+var log = Logger.getLogger('order-process', 'job-processing');
 var orders;
 
 exports.beforeStep = function (parameters, stepExecution) {
@@ -216,7 +216,7 @@ var HTTPClient = require('dw/net/HTTPClient');
 var Transaction = require('dw/system/Transaction');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('job', 'CustomerSync');
+var log = Logger.getLogger('customer-sync', 'job-processing');
 var customers;
 var apiUrl;
 var apiKey;

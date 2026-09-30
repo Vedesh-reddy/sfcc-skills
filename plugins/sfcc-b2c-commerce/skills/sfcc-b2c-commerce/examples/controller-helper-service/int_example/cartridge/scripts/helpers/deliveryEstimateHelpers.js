@@ -1,7 +1,6 @@
 'use strict';
 
 var ProductMgr = require('dw/catalog/ProductMgr');
-var CacheMgr = require('dw/system/CacheMgr');
 var Logger = require('dw/system/Logger');
 var deliveryService = require('*/cartridge/scripts/services/deliveryEstimateService');
 
@@ -21,16 +20,12 @@ function validateInput(pid, pincode) {
 }
 
 function getEstimate(productID, pincode) {
-    var cache = CacheMgr.getCache('deliveryEstimates');
-    return cache.get(productID + ':' + pincode, function () {
-        var result = deliveryService.fetchEstimate(productID, pincode);
-        if (!result.ok) {
-            log.warn('Delivery estimate failed: status={0} error={1}', result.status, result.error);
-            // Returning undefined keeps failures out of the cache.
-            return undefined;
-        }
-        return { success: true, available: !!result.object.serviceable, days: Number(result.object.days) || null };
-    }) || { success: false, available: false, days: null };
+    var result = deliveryService.fetchEstimate(productID, pincode);
+    if (!result.ok) {
+        log.warn('Delivery estimate failed: status={0} error={1}', result.status, result.error);
+        return { success: false, available: false, days: null };
+    }
+    return { success: true, available: !!result.object.serviceable, days: Number(result.object.days) || null };
 }
 
 module.exports = {

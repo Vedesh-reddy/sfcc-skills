@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 — 2026-09-30
+
+Every code sample in the skill now follows the governing directive, and every future change is checked against it.
+
+- **Logging:** `references/logging/index.md` rewritten to the directive (named kebab-case loggers only; file-prefix rules; no PII examples). 11 non-kebab and 3 static `Logger.error` calls in other references converted. Documented that `b2c logs --filter` sees only the first word of a kebab-case prefix, so prefixes need a unique first word.
+- **SCSS / ISML / accessibility:** new `references/core/scss-ui.md` (Bootstrap 4 utility mapping, SCSS scope, `~base` aliases, no Grid, kebab-case, accessible markup). Page Designer example classes changed from BEM to kebab-case. Directive note: Bootstrap 4 has no `w-0`/`p-100`.
+- **No speculative code in examples:** removed the custom cache, the feature-flag site preference and the service mock from the delivery example.
+- **Router:** standards apply to all generated code, including code adapted from references; teaching comments aren't copied. Checklist extended (logger rules, Bootstrap, a11y, comments, speculative features).
+- **Enforcement:** `scripts/check_standards.py` (run by `verify.sh` and CI) fails on static/uncategorized/non-kebab loggers, prefixes outside 3–25 chars, `console` in server code, CSS Grid, layout rules Bootstrap covers, relative cross-cartridge imports, non-kebab classes/IDs/selectors, `<img>` without `alt`, clickable `div`/`span`.
+- **Evals:** new task 06 (ISML + SCSS badge); tasks 01, 02, 04, 05 also graded on directive standards and comment density. Reference answers score 71/71.
+- **Build:** the upstream re-sync script no longer deletes non-reference files.
+
 ## 2.1.1 — 2026-09-30
 
 - Directive: client-specific cartridge name replaced with the placeholder `app_<brand>`, with a note to substitute the project's custom storefront cartridge.

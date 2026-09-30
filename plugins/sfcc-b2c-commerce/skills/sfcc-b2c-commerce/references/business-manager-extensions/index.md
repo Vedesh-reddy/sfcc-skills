@@ -229,7 +229,7 @@ var ISML = require('dw/template/ISML');
 var URLUtils = require('dw/web/URLUtils');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('bm', 'ACME');
+var log = Logger.getLogger('acme-bm-tools', 'bm-extension');
 
 /**
  * Render the dashboard. Wired to <exec pipeline="ACME" node="Start"/>.

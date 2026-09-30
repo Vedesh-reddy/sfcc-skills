@@ -1,0 +1,10 @@
+<isdecorate template="common/layout/page">
+    <div class="container product-detail" data-pid="${pdict.product.id}">
+        <div class="row">
+            <div class="col-12 col-sm-6">
+                <h1 class="product-name">${pdict.product.productName}</h1>
+                <isinclude template="product/components/pricing/main" />
+            </div>
+        </div>
+    </div>
+</isdecorate>

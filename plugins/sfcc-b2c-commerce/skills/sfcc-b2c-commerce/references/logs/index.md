@@ -183,11 +183,13 @@ custom-<prefix>-<hostname>-appserver-<date>.log
 
 The `<prefix>` segment is the **first argument** passed to `Logger.getLogger(prefix, category)` in the emitting code, so it maps a log file straight back to the code that wrote it:
 
-| Code                                              | Log file                        | Filter to read it                  |
-| ------------------------------------------------- | ------------------------------- | ---------------------------------- |
-| `Logger.getLogger('PaymentProcessor', 'payment')` | `custom-PaymentProcessor-*.log` | `--filter custom-PaymentProcessor` |
-| `Logger.getLogger('PimTaxImport', 'tax')`         | `custom-PimTaxImport-*.log`     | `--filter custom-PimTaxImport`     |
-| `Logger.getLogger('orderexport', 'export')`       | `custom-orderexport-*.log`      | `--filter custom-orderexport`      |
+| Code | Log file | Filter to read it |
+| --- | --- | --- |
+| `Logger.getLogger('razorpay-reconciliation', 'order-payments')` | `custom-razorpay-reconciliation-*.log` | `--filter custom-razorpay` |
+| `Logger.getLogger('pim-tax-import', 'product-validation')` | `custom-pim-tax-import-*.log` | `--filter custom-pim` |
+| `Logger.getLogger('order-export', 'order-processing')` | `custom-order-export-*.log` | `--filter custom-order` |
+
+Prefixes are kebab-case per the governing directive, so the filter sees only the first word: give each module a unique first word.
 
 (The second argument is the log _category_, used for configuration; it does not appear in the file name.) For the authoring side — how to create these loggers — see `references/logging/index.md`.
 

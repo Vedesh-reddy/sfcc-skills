@@ -17,6 +17,8 @@ Before any plan, edit, review or tool call, read [references/core/directive.md](
 - **Comments:** minimal, natural, explain *why*.
 - **Answer the 7 pre-implementation questions** and end implementation tasks with the directive's `Cartridge / File / Extension point / Change` statement and compliance report.
 
+**Every line of code you write follows these standards — including code adapted from this skill.** Code in `references/` teaches a pattern; its explanatory comments, placeholder names and extra options are not to be copied. Write your own code to the directive: kebab-case two-argument loggers, minimal *why* comments, no speculative caching/flags/mocks, kebab-case selectors, Bootstrap utilities, no Grid.
+
 Work in three passes: **find** the right guidance, **apply** it with the guardrails, **verify** before answering. Don't answer SFCC questions from memory when a file below covers them — this skill corrects several common errors (see [VERIFICATION.md](VERIFICATION.md)).
 
 ## 1. Find
@@ -26,7 +28,7 @@ Work in three passes: **find** the right guidance, **apply** it with the guardra
 | Task | Read |
 |---|---|
 | Controller route, extend a base controller | [controllers](references/controllers/index.md) → `SFRA-PATTERNS.md`; example [controller-helper-service](examples/controller-helper-service/README.md) |
-| ISML template, expressions, tags | [isml](references/isml/index.md) |
+| SCSS, ISML markup, Bootstrap utilities, accessibility | [core/scss-ui.md](references/core/scss-ui.md) + [isml](references/isml/index.md) |
 | Form definition XML | [forms](references/forms/index.md) → `FORM-XML.md` |
 | Hooks (order, payment, OCAPI/SCAPI) | [hooks](references/hooks/index.md) → `ORDER-HOOK-LIFECYCLE.md`, `SYSTEM-HOOKS.md` |
 | Orders: create, place, fail, cancel, status, payment state | [ordering](references/ordering/index.md) + [guardrails §6](references/core/guardrails.md#6-order-and-payment-state); example [payment-reconciliation](examples/payment-reconciliation/README.md) |

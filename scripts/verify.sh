@@ -26,6 +26,7 @@ step "XML vs official XSDs"     python3 "$ROOT/scripts/validate_xml.py" "$UP/pac
 step "dw.* API references"      python3 "$ROOT/scripts/check_dw_api.py" "$UP/packages/b2c-script-types/types" "$SKILL"
 step "b2c CLI commands/flags"   python3 "$ROOT/scripts/check_cli.py" "$UP/packages/b2c-cli/src" "$SKILL"
 step "steptypes.json"           python3 "$ROOT/scripts/check_steptypes.py" "$SKILL"
+step "Directive standards"      python3 "$ROOT/scripts/check_standards.py" "$SKILL"
 step "Skill structure"          python3 "$ROOT/scripts/check_structure.py" "$ROOT"
 step "Example typecheck"        "$ROOT/scripts/typecheck/run.sh"
 step "Example unit tests"       node --test "$ROOT"/plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/examples/test/examples.test.js
