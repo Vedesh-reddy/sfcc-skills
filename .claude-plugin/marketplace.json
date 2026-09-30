@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "sfcc-skills",
+  "description": "Salesforce B2C Commerce Cloud (SFCC) skills for Claude Code",
+  "owner": {
+    "name": "Vedesh Reddy Janga"
+  },
+  "plugins": [
+    {
+      "name": "sfcc-b2c-commerce",
+      "description": "Complete SFCC / B2C Commerce reference: b2c CLI operations plus cartridge development (SFRA, ISML, hooks, jobs, SCAPI, SLAS, Page Designer and more).",
+      "source": "./plugins/sfcc-b2c-commerce",
+      "category": "development"
+    }
+  ]
+}

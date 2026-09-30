@@ -1,0 +1,9 @@
+{
+  "name": "sfcc-b2c-commerce",
+  "version": "1.0.0",
+  "description": "Complete SFCC / B2C Commerce reference: b2c CLI operations plus cartridge development (SFRA, ISML, hooks, jobs, SCAPI, SLAS, Page Designer and more).",
+  "author": {
+    "name": "Vedesh Reddy Janga"
+  },
+  "keywords": ["sfcc", "salesforce", "b2c-commerce", "demandware", "sfra", "scapi"]
+}
