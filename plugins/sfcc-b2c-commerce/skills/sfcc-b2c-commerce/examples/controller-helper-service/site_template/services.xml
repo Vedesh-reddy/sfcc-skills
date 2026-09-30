@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="example.delivery.estimate.cred">
+        <url>https://delivery.example.com/v1/estimate</url>
+        <user-id>storefront</user-id>
+        <password>REPLACE_IN_BUSINESS_MANAGER</password>
+    </service-credential>
+
+    <service-profile service-profile-id="example.delivery.estimate.profile">
+        <timeout-millis>3000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>5</cb-calls>
+        <cb-millis>10000</cb-millis>
+    </service-profile>
+
+    <service service-id="example.delivery.estimate.http">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>DeliveryEstimate</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>example.delivery.estimate.profile</profile-id>
+        <credential-id>example.delivery.estimate.cred</credential-id>
+    </service>
+</services>

@@ -1,0 +1,144 @@
+<!-- source: b2c-code/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** Deploy, download, and manage cartridge code versions on B2C Commerce instances. Use this skill whenever the user needs to upload or download cartridges to/from a sandbox, activate or delete code versions, watch for local file changes during development, or deploy a subset of cartridges. Also use when pushing code to an instance, pulling code from an instance, or setting up a dev workflow with live reload -- even if they just say 'push my code to the sandbox', 'download the code', or 'how do I activate the new version'.
+
+# B2C Code Skill
+
+Use the `b2c` CLI to deploy, download, and manage code versions on Salesforce B2C Commerce instances.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli code deploy`).
+
+## MCP equivalent
+
+Prefer `cartridge_deploy` for cartridge upload. Set `codeVersion` explicitly when
+needed; `files` selects up to 100 local files (64 MiB total), relative to
+`projectDirectory`, within discovered cartridges. Omit `files` for whole cartridges.
+Matching remote files are overwritten; selected-file mode preserves other files.
+`reload` may activate the target; keep upload success/warnings if reload fails.
+Code mode `builtin/code-version-inspect` reads active/rollback and activation metadata;
+`builtin/site-cartridge-inspect` reads site cartridge order and checks expected names.
+SCAPI `dx/scripts/v1` provides version management; `site/sites/v1` manages site paths.
+Use the CLI for watches, recursive downloads, and extra deployment flags.
+
+## Configuration & Authentication
+
+The CLI auto-discovers the target instance and credentials from `SFCC_*` environment variables (including project `.env`), the selected project-local or shared `dw.json`, and configuration plugins. `package.json` supplies only non-sensitive defaults. **Flags like `--server`, `--client-id`, `--client-secret`, `--username`, and `--password` are usually unnecessary** — only pass them to override what's auto-detected.
+
+Run `b2c setup inspect` to see the resolved configuration and which source provided each value (use `--json` for scripting; secrets stay masked by default). For precedence rules and troubleshooting, see `references/config/index.md`.
+
+## Examples
+
+### Deploy Cartridges
+
+```bash
+# deploy all cartridges from current directory
+b2c code deploy
+
+# deploy cartridges from a specific directory
+b2c code deploy ./my-cartridges
+
+# deploy to a specific server and code version
+b2c code deploy --server my-sandbox.demandware.net --code-version v1
+
+# deploy and reload (re-activate) the code version
+b2c code deploy --reload
+
+# delete existing cartridges before upload and reload
+b2c code deploy --delete --reload
+
+# deploy only specific cartridges
+b2c code deploy -c app_storefront_base -c plugin_applepay
+
+# exclude specific cartridges from deployment
+b2c code deploy -x test_cartridge
+```
+
+### Download Cartridges
+
+```bash
+# download all cartridges from the active code version
+b2c code download
+
+# download to a specific directory
+b2c code download -o ./downloaded
+
+# download from a specific server and code version
+b2c code download --server my-sandbox.demandware.net --code-version v1
+
+# download only specific cartridges
+b2c code download -c app_storefront_base -c plugin_applepay
+
+# exclude specific cartridges from download
+b2c code download -x test_cartridge
+
+# mirror: extract to local cartridge project locations
+b2c code download --mirror
+```
+
+### Watch for Changes
+
+```bash
+# watch cartridges and upload changes automatically
+b2c code watch
+
+# watch a specific directory
+b2c code watch ./my-cartridges
+
+# watch with specific server and code version
+b2c code watch --server my-sandbox.demandware.net --code-version v1
+
+# watch only specific cartridges
+b2c code watch -c app_storefront_base
+
+# watch excluding specific cartridges
+b2c code watch -x test_cartridge
+```
+
+### List Code Versions
+
+```bash
+# list code versions on the instance
+b2c code list
+
+# list with JSON output
+b2c code list --json
+```
+
+### Activate Code Version
+
+```bash
+# activate a code version
+b2c code activate <version-name>
+
+# reload (re-activate) the current code version
+b2c code activate --reload
+```
+
+**Note:** Activation is idempotent. If the version is already active, the command succeeds without making a change. If you've uploaded code or changed Custom APIs in the active version, use `--reload` with deploy or activate to force a refresh and register the endpoints. Check registration status with the `references/scapi-custom/index.md`.
+
+### Delete Code Version
+
+```bash
+# delete a code version
+b2c code delete <version-name>
+```
+
+### API Backend
+
+`code list`, `code activate`, `code delete`, and the active-version discovery / activate / reload steps in `code deploy` run over SCAPI. Configure `shortCode`, `tenantId`, and the `sfcc.scripts` / `sfcc.scripts.rw` scopes and they work out of the box. Read scope (`sfcc.scripts`) covers `code list` / discovery; write scope (`sfcc.scripts.rw`) covers activate, delete, reload, and the `--activate` / `--reload` flags on deploy.
+
+`code deploy` (file upload itself), `code download`, and `code watch` always use WebDAV — only the surrounding code-version operations use SCAPI.
+
+OCAPI is deprecated and disabled on newer instances. `--api-backend auto` (the default) falls back to the OCAPI Data API on safe SCAPI capability/auth/request rejections; force a backend with `--api-backend scapi|ocapi` if needed. The `--reload` flag forces a code cache reload as activate(alternate) + activate(target), using whichever backend the command selected — so it works on OCAPI-disabled instances when SCAPI is configured.
+
+### More Commands
+
+See `b2c code --help` for a full list of available commands and options in the `code` topic.
+
+> **Note:** `b2c code deploy` uploads cartridge _code_ to an instance. To manage which cartridges are _active on a site_ (the cartridge path), see `references/sites/index.md` for the `b2c sites cartridges` commands.
+
+## Related Skills
+
+- `references/sites/index.md` - Manage site cartridge paths (list, add, remove, set active cartridges)
+- `references/scapi-custom/index.md` - Check Custom API registration status after deployment
+- `references/webdav/index.md` - Low-level file operations (delete cartridges, list files)
+- `references/custom-api-development/index.md` - Creating Custom API endpoints

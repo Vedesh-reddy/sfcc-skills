@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns="http://www.demandware.com/xml/impex/jobs/2015-07-01">
+    <job job-id="Example-ExportProductFeed">
+        <description>Exports online products to IMPEX/src/feeds as CSV</description>
+        <flow>
+            <context site-id="RefArch"/>
+            <step step-id="ExportProductFeed" type="custom.ExampleExportProductFeed" enforce-restart="false">
+                <description>Chunked CSV export</description>
+                <parameters>
+                    <parameter name="FileNamePrefix">product-feed</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <triggers>
+            <run-once enabled="false">
+                <date>2026-01-01Z</date>
+                <time>00:00:00.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+</jobs>

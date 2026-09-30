@@ -1,0 +1,208 @@
+<!-- source: b2c-users-roles/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** Manage Business Manager users, access roles, role permissions, and per-user access keys on a B2C Commerce instance using the b2c CLI. Use this skill whenever the user needs to list or search BM users on a sandbox or production instance, identify which BM user an OAuth token resolves to ("whoami"), assign or revoke instance-level access roles, edit role permissions, look up a user's WebDAV / OCAPI / Storefront access key, or rotate access keys for SSO-managed users. Also use when the user asks "what's my BM login on sandbox X", "rotate my WebDAV password", "how do I make a custom BM role", "audit BM users on this instance", or "delete a stale BM user from a sandbox".
+
+# B2C Business Manager Users, Roles, and Access Keys
+
+Use the `b2c bm` commands to administer instance-level Business Manager resources (users, roles, access keys) over SCAPI. These commands target a specific Commerce Cloud instance — pass `--server`/`-s` or set the active instance in `dw.json` first.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli bm whoami`).
+
+For **Account Manager** user/role/client management (cross-instance, scoped to tenants), see `references/am/index.md` instead.
+
+## API Backend
+
+`bm users` (list, get, portable search, update, delete) and `bm roles` (all subcommands including permissions) run over the SCAPI Merchant Users / Merchant Roles APIs. Configure `shortCode`, `tenantId`, and the `sfcc.users(.rw)` / `sfcc.roles(.rw)` scopes to use SCAPI. Search is implemented by filtering the paginated SCAPI user listing.
+
+OCAPI-only operations as of B2C Commerce release 26.8 (no current live SCAPI equivalent, unavailable on OCAPI-disabled instances): raw `bm users search --query` JSON, `bm whoami`, and `bm access-key *`. `auto` uses the temporary OCAPI compatibility path. Explicit SCAPI mode fails before contacting OCAPI and directs the user to `--api-backend ocapi` until support becomes available.
+
+OCAPI is deprecated and disabled on newer instances. `--api-backend auto` (the default) falls back on safe SCAPI capability/auth/request rejections; force a backend with `--api-backend scapi|ocapi` if needed. SCAPI updates `disabled` by reading the current user and preserving its writable fields through PUT because PATCH omits that field.
+
+## Authentication
+
+The CLI auto-discovers the target instance and credentials from `SFCC_*` environment variables (including project `.env`), the selected project-local or shared `dw.json`, and configuration plugins. `package.json` supplies only non-sensitive defaults. **Flags like `--server`, `--client-id`, and `--client-secret` are usually unnecessary** — only pass them to override what's auto-detected. Run `b2c setup inspect` to see the resolved configuration and which source provided each value. For precedence and troubleshooting, see `references/config/index.md`.
+
+As of release 26.8, SCAPI Admin APIs require client credentials or JWT Bearer and do not support browser-based user auth. User auth continues to work through OCAPI and WebDAV, and `auto` selects OCAPI for that flow. Explicit SCAPI fails with actionable guidance. A handful of OCAPI endpoints require a _real BM user identity_ and default to user auth.
+
+| Command group                                  | Default auth                        | Why                                                                                          |
+| ---------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `b2c bm roles ...`                             | client-credentials → jwt → implicit | OCAPI permissions for `/roles`                                                               |
+| `b2c bm users {list,get,search,update,delete}` | client-credentials → jwt → implicit | OCAPI permissions for `/users`                                                               |
+| `b2c bm whoami`                                | **implicit (browser)**              | OCAPI `/users/this` requires the token to resolve to a BM user                               |
+| `b2c bm access-key {get,create,set,delete}`    | **implicit (browser)**              | OCAPI access-key endpoints require "a valid user" plus `Manage_Users_Access_Keys` permission |
+
+Override the default with `--auth-methods client-credentials` (or `--client-secret` flags) when your service-client setup is configured to issue user-bearing tokens.
+
+## Business Manager Roles
+
+BM roles are instance-level Business Manager access roles (e.g. `Administrator`, `Support`, plus any custom roles).
+
+```bash
+# list roles on the configured instance
+b2c bm roles list
+
+# target a different instance
+b2c bm roles list --server my-sandbox.demandware.net
+
+# get role details, including assigned users
+b2c bm roles get Administrator --expand users
+
+# create a custom role
+b2c bm roles create MyEditor --description "Custom role for content editors"
+
+# delete a custom role (system roles cannot be deleted)
+b2c bm roles delete MyEditor
+
+# assign / unassign a user
+b2c bm roles grant user@example.com --role Administrator
+b2c bm roles revoke user@example.com --role Administrator
+
+# all commands accept --json for machine-readable output
+b2c bm roles list --json
+```
+
+### Role Permissions
+
+Permissions use a file-based get/set workflow because the API replaces the entire permission set on each write.
+
+```bash
+# view a permission summary
+b2c bm roles permissions get Administrator
+
+# export to a JSON file for editing
+b2c bm roles permissions get Administrator --output admin-perms.json
+
+# edit the file, then apply
+b2c bm roles permissions set Administrator --file admin-perms.json
+```
+
+The permissions JSON has four sections: `functional`, `module`, `locale`, and `webdav`. Each can be scoped to organization, site, or unscoped depending on the permission type.
+
+## Business Manager Users
+
+These commands cover the full lifecycle — **create/read/search/update/delete** — for BM users, plus the per-user access-key administration below. Note that `bm users create` is a create-or-replace that only works on instances configured to allow _local_ BM users; most production instances use SSO with Account Manager and reject it with `LocalUserCreationException`, in which case users are provisioned in Account Manager and managed here for the rest of their lifecycle.
+
+```bash
+# list (default 25)
+b2c bm users list
+b2c bm users list --count 50 --start 50            # pagination
+b2c bm users list --extended                       # add lastLogin, externalId
+b2c bm users list --columns login,email,lastLogin  # custom column set
+
+# get one user by login (email)
+b2c bm users get user@example.com
+
+# create a user (create-or-replace; --email required, --role repeatable)
+# only on instances that allow local users — else LocalUserCreationException
+b2c bm users create user@example.com --email user@example.com
+b2c bm users create user@example.com --email user@example.com --first-name Jane --last-name Doe --role Administrator
+
+# search by attribute (any combination of flags)
+b2c bm users search --search-phrase smith
+b2c bm users search --login user@example.com
+b2c bm users search --locked --sort-by last_login_date --sort-order desc
+b2c bm users search --query '{"text_query":{"fields":["login"],"search_phrase":"foo"}}'
+
+# update non-identity fields (locale, external_id, disabled, name)
+b2c bm users update user@example.com --disabled
+b2c bm users update user@example.com --no-disabled --preferred-ui-locale en_US
+b2c bm users update user@example.com --first-name Jane --last-name Doe
+
+# delete (prompts for confirmation; --force to skip)
+b2c bm users delete user@example.com
+b2c bm users delete user@example.com --force --json
+```
+
+**Cannot be updated via `update`:** the `locked` flag and the user `password` (those are governed by AM/SSO).
+
+## Whoami — Identify the Current BM User
+
+`bm whoami` calls `GET /users/this` and returns the BM user the OAuth token resolves to. Useful for verifying which identity will be used for downstream commands and for sanity-checking that a token actually carries a user claim.
+
+```bash
+b2c bm whoami
+b2c bm whoami --json
+```
+
+Defaults to browser-based user-auth — a fresh shell will trigger an `b2c auth login` flow. Once logged in, the saved session is reused across commands until it expires.
+
+## Access Keys (WebDAV, OCAPI, Storefront)
+
+Access keys let SSO-managed BM users authenticate to non-OAuth surfaces (WebDAV, classic OCAPI/SCAPI Basic auth, or Storefront diagnostics). Three scopes exist; pick the one matching the surface you need to use.
+
+| Scope                         | Used for                                              |
+| ----------------------------- | ----------------------------------------------------- |
+| `WEBDAV_AND_STUDIO` (default) | WebDAV uploads (cartridge sync, IMPEX), Studio access |
+| `AGENT_USER_AND_OCAPI`        | Customer Service Center (CSC) and OCAPI Basic auth    |
+| `STOREFRONT`                  | Storefront diagnostic / agent login passwords         |
+
+`[LOGIN]` is **optional** on every access-key command — when omitted, the CLI calls `bm whoami` first and operates on your own user. Passing an explicit login lets administrators manage someone else's keys (requires `Manage_Users_Access_Keys` permission).
+
+```bash
+# get access-key state for the current user (defaults to WEBDAV_AND_STUDIO)
+b2c bm access-key get
+b2c bm access-key get --scope STOREFRONT
+b2c bm access-key get user@example.com --scope AGENT_USER_AND_OCAPI
+
+# create or rotate an access key — the secret is shown ONCE at creation
+b2c bm access-key create
+b2c bm access-key create --scope STOREFRONT
+b2c bm access-key create --json | jq -r '.access_key'
+
+# enable / disable an existing key
+b2c bm access-key set --enabled
+b2c bm access-key set --no-enabled
+b2c bm access-key set user@example.com --scope STOREFRONT --enabled
+
+# delete (prompts for confirmation; --force to skip)
+b2c bm access-key delete
+b2c bm access-key delete --scope STOREFRONT --force
+```
+
+> **Important:** the `access_key` value is only returned in the response of `create`. Subsequent `get` calls do not return it. If you lose the value, run `create` again — the previous key is removed automatically.
+
+## Common Workflows
+
+### Rotate my own WebDAV password (no admin privileges needed)
+
+```bash
+b2c bm access-key create
+# record the printed access_key — it's the new password for WebDAV/IMPEX
+```
+
+### Audit users with admin role and stale logins
+
+```bash
+b2c bm roles get Administrator --expand users --json | jq '.users[].login'
+b2c bm users search --sort-by last_login_date --sort-order asc --json
+```
+
+### Provision a new custom role and assign one user
+
+```bash
+b2c bm roles create MyEditor --description "Content editors"
+b2c bm roles permissions get MyEditor --output role.json
+# edit role.json
+b2c bm roles permissions set MyEditor --file role.json
+b2c bm roles grant editor@example.com --role MyEditor
+```
+
+### Cycle access keys for an SSO user (admin)
+
+```bash
+# disable temporarily
+b2c bm access-key set user@example.com --scope WEBDAV_AND_STUDIO --no-enabled
+
+# rotate
+b2c bm access-key create user@example.com --scope WEBDAV_AND_STUDIO
+```
+
+## Common Patterns
+
+- All list/search commands support `--columns`, `--extended` / `-x`, and `--json`.
+- `bm users` and `bm roles` use OCAPI pagination: `--count`/`-n` and `--start`. AM commands use `--size`/`--page` instead — don't mix them up.
+- Destructive commands (`bm users delete`, `bm access-key delete`) prompt for confirmation. Use `--force` for non-interactive scripts. `--json` mode skips the prompt automatically.
+- When a service client cannot resolve a BM user (e.g. AM-only credential), `whoami` and `access-key` commands return `UserNotAvailableException` from the API — re-run with `--user-auth` or `b2c auth login` first.
+
+### More
+
+See `b2c bm --help`, `b2c bm users --help`, and `b2c bm access-key --help` for the full flag list. The OCAPI Data API user resource documentation describes the underlying endpoints and their fault codes.

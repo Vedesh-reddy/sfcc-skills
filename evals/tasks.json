@@ -1,0 +1,340 @@
+{
+  "version": 1,
+  "instructions_suffix": "Write every file you produce under the directory given as OUT. Also write OUT/SOURCES.md listing the skill files (paths under references/ or examples/) you consulted, one per line. Do not ask questions; state assumptions in OUT/NOTES.md.",
+  "tasks": [
+    {
+      "id": "01-chunk-job-iterator",
+      "title": "Chunk job that closes its iterator even when processing fails",
+      "prompt": "In a new cartridge named int_task, create a chunk-oriented job step that exports the ID and name of every online product to a CSV file in the IMPEX folder. The product iterator and the file writer must be released even if read/process/write throws midway, and a failed run must not leave a partial CSV behind. Provide steptypes.json and the step module. OUT is out/01.",
+      "expected_sources": [
+        "references/custom-job-steps/",
+        "references/core/guardrails.md"
+      ],
+      "checks": [
+        {
+          "type": "file_glob",
+          "glob": "out/01/**/steptypes.json",
+          "desc": "steptypes.json produced"
+        },
+        {
+          "type": "steptypes",
+          "glob": "out/01/**/steptypes.json",
+          "desc": "steptypes.json valid; functions exported; not transactional"
+        },
+        {
+          "type": "node_check",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "desc": "step module is valid JavaScript"
+        },
+        {
+          "type": "dw_api",
+          "glob": "out/01",
+          "desc": "dw.* members exist"
+        },
+        {
+          "type": "regex",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "pattern": "exports\\.afterStep",
+          "desc": "afterStep implemented"
+        },
+        {
+          "type": "regex",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "pattern": "\\b(catch|finally)\\b",
+          "desc": "cleanup also runs on failure (catch/finally)"
+        },
+        {
+          "type": "regex_count",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "pattern": "\\.close\\(\\)",
+          "min": 2,
+          "desc": "closes iterator and writer"
+        },
+        {
+          "type": "regex",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "pattern": "\\.remove\\(\\)|renameTo\\(",
+          "desc": "partial file removed or temp file renamed on success"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/01/**/cartridge/**/*.js",
+          "pattern": "\\.asList\\(\\)",
+          "desc": "does not materialize the iterator"
+        }
+      ]
+    },
+    {
+      "id": "02-razorpay-review",
+      "title": "Review Razorpay reconciliation without failing uncertain orders",
+      "prompt": "Review evals/fixtures/razorpay-review/reconcileRazorpay.js (a job step for our SFCC jewellery storefront). Write OUT/REVIEW.md listing each defect with severity and why, then write a corrected OUT/reconcileRazorpay.js. Hard requirement: an order must never be failed when the payment status is uncertain (gateway error/timeout, authorized-not-captured, amount mismatch). OUT is out/02.",
+      "expected_sources": [
+        "references/ordering/index.md",
+        "references/core/guardrails.md",
+        "examples/payment-reconciliation/"
+      ],
+      "checks": [
+        {
+          "type": "file_glob",
+          "glob": "out/02/REVIEW.md",
+          "desc": "review written"
+        },
+        {
+          "type": "node_check",
+          "glob": "out/02/*.js",
+          "desc": "corrected file is valid JavaScript"
+        },
+        {
+          "type": "dw_api",
+          "glob": "out/02",
+          "desc": "dw.* members exist"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/02/*.js",
+          "pattern": "rzp_live_Xk29aQ|9fQ2mZ8sLw",
+          "desc": "hardcoded credentials removed"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/02/*.js",
+          "pattern": "queryOrders\\(",
+          "desc": "deprecated queryOrders replaced"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/02/*.js",
+          "pattern": "failOrder\\(\\s*order\\s*\\)",
+          "desc": "no deprecated one-argument failOrder"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/02/*.js",
+          "pattern": "Transaction\\.wrap\\(\\s*function[^{]*\\{[^}]*\\.call\\(",
+          "desc": "no service call inside a transaction"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/02/*.js",
+          "pattern": "Logger\\.\\w+\\([^)]*getText\\(\\)",
+          "desc": "response body not logged"
+        },
+        {
+          "type": "regex",
+          "glob": "out/02/*.js",
+          "pattern": "filterLogMessage|getRequestLogMessage",
+          "desc": "service masks comm logs"
+        },
+        {
+          "type": "regex",
+          "glob": "out/02/*.js",
+          "pattern": "finally[\\s\\S]{0,120}\\.close\\(\\)",
+          "desc": "order iterator closed in finally"
+        },
+        {
+          "type": "regex",
+          "glob": "out/02/*.js|out/02/REVIEW.md",
+          "pattern": "undoFailOrder",
+          "desc": "knows undoFailOrder exists (late captures on FAILED orders)"
+        },
+        {
+          "type": "regex",
+          "glob": "out/02/REVIEW.md",
+          "pattern": "authori[sz]ed",
+          "desc": "flags authorized-treated-as-paid",
+          "ignore_case": true
+        },
+        {
+          "type": "regex",
+          "glob": "out/02/REVIEW.md",
+          "pattern": "amount|currency",
+          "desc": "flags missing amount/currency check",
+          "ignore_case": true
+        }
+      ]
+    },
+    {
+      "id": "03-custom-attribute-xml",
+      "title": "Valid custom-attribute metadata XML",
+      "prompt": "Create a site-import metadata file that adds these Product custom attributes: hallmarkNumber (string, max 20 characters), metalWeightGrams (double), stoneType (single-select enum with values DIAMOND, RUBY, EMERALD and display names Diamond, Ruby, Emerald). Put all three in an attribute group JewelleryDetails so merchants can edit them in Business Manager. Also give the exact b2c CLI command to import it. OUT is out/03 (keep the site-import folder layout).",
+      "expected_sources": [
+        "references/metadata/",
+        "examples/metadata/"
+      ],
+      "checks": [
+        {
+          "type": "file_glob",
+          "glob": "out/03/**/meta/*.xml",
+          "desc": "file placed under meta/"
+        },
+        {
+          "type": "xsd",
+          "glob": "out/03/**/*.xml",
+          "desc": "validates against metadata.xsd"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/03/**/*.xml",
+          "pattern": "<max-length>",
+          "desc": "uses field-length, not max-length"
+        },
+        {
+          "type": "regex",
+          "glob": "out/03/**/*.xml",
+          "pattern": "<field-length>20</field-length>",
+          "desc": "length limit 20"
+        },
+        {
+          "type": "regex",
+          "glob": "out/03/**/*.xml",
+          "pattern": "<type>enum-of-string</type>",
+          "desc": "enum type"
+        },
+        {
+          "type": "regex",
+          "glob": "out/03/**/*.xml",
+          "pattern": "group-id=\"JewelleryDetails\"",
+          "desc": "attribute group"
+        },
+        {
+          "type": "regex",
+          "glob": "out/03/**/*.md|out/03/**/*.txt",
+          "pattern": "b2c job import",
+          "desc": "correct import command"
+        }
+      ]
+    },
+    {
+      "id": "04-extend-controller",
+      "title": "Extend an SFRA controller using the project's conventions",
+      "prompt": "Copy evals/fixtures/sfra-project to OUT and work there. Add a 'metal purity' badge value to the product detail page data (Product-Show) using Product.custom.metalPurity. Follow this project's existing conventions exactly. OUT is out/04.",
+      "expected_sources": [
+        "references/controllers/",
+        "examples/controller-helper-service/"
+      ],
+      "checks": [
+        {
+          "type": "file_glob",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/controllers/Product.js",
+          "desc": "extension in the custom cartridge"
+        },
+        {
+          "type": "node_check",
+          "glob": "out/04/cartridges/app_custom_store/**/*.js",
+          "desc": "valid JavaScript"
+        },
+        {
+          "type": "dw_api",
+          "glob": "out/04/cartridges/app_custom_store",
+          "desc": "dw.* members exist"
+        },
+        {
+          "type": "regex",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/controllers/Product.js",
+          "pattern": "module\\.superModule",
+          "desc": "uses module.superModule"
+        },
+        {
+          "type": "regex",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/controllers/Product.js",
+          "pattern": "server\\.append\\(\\s*['\"]Show['\"]",
+          "desc": "appends to Show"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/controllers/Product.js",
+          "pattern": "server\\.(get|replace)\\(\\s*['\"]Show['\"]",
+          "desc": "does not copy/replace the base route"
+        },
+        {
+          "type": "regex",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/controllers/Product.js",
+          "pattern": "viewData\\.store",
+          "desc": "follows viewData.store convention"
+        },
+        {
+          "type": "regex",
+          "glob": "out/04/cartridges/app_custom_store/cartridge/scripts/helpers/*.js",
+          "pattern": "metalPurity",
+          "desc": "logic lives in a helper"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/04/cartridges/app_custom_store/**/*.js",
+          "pattern": "console\\.",
+          "desc": "no console logging"
+        },
+        {
+          "type": "unchanged",
+          "glob": "out/04/cartridges/app_storefront_base/cartridge/controllers/Product.js",
+          "fixture": "fixtures/sfra-project/cartridges/app_storefront_base/cartridge/controllers/Product.js",
+          "desc": "base cartridge untouched"
+        }
+      ]
+    },
+    {
+      "id": "05-service-masking",
+      "title": "Service that masks credentials in logs",
+      "prompt": "In cartridge int_goldrate, create an SFCC service module that calls a Gold Rate REST API (GET {url}/rates?metal=gold&city={city}) authenticated with an 'x-api-key' header, plus the services.xml to import it. Credentials must never appear in code or in any log, including communication logs. Return a parsed {pricePerGram, currency, asOf}. OUT is out/05.",
+      "expected_sources": [
+        "references/webservices/",
+        "references/core/guardrails.md"
+      ],
+      "checks": [
+        {
+          "type": "node_check",
+          "glob": "out/05/**/*.js",
+          "desc": "valid JavaScript"
+        },
+        {
+          "type": "dw_api",
+          "glob": "out/05",
+          "desc": "dw.* members exist"
+        },
+        {
+          "type": "xsd",
+          "glob": "out/05/**/services.xml",
+          "desc": "services.xml validates"
+        },
+        {
+          "type": "regex",
+          "glob": "out/05/**/*.js",
+          "pattern": "LocalServiceRegistry\\.createService",
+          "desc": "uses the service framework"
+        },
+        {
+          "type": "regex",
+          "glob": "out/05/**/*.js",
+          "pattern": "getCredential\\(\\)",
+          "desc": "reads the key from the service credential"
+        },
+        {
+          "type": "regex",
+          "glob": "out/05/**/*.js",
+          "pattern": "filterLogMessage|getRequestLogMessage",
+          "desc": "log masking callbacks"
+        },
+        {
+          "type": "regex",
+          "glob": "out/05/**/*.js",
+          "pattern": "x-api-key[\\s\\S]{0,400}\\*{3,}|\\*{3,}[\\s\\S]{0,400}x-api-key|(mask|redact)",
+          "desc": "masks the api key value",
+          "ignore_case": true
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/05/**/*.js",
+          "pattern": "console\\.",
+          "desc": "no console logging"
+        },
+        {
+          "type": "regex_absent",
+          "glob": "out/05/**/*.js",
+          "pattern": "x-api-key['\"]\\s*,\\s*['\"][A-Za-z0-9]{8,}",
+          "desc": "no hardcoded key",
+          "ignore_case": true
+        }
+      ]
+    }
+  ]
+}

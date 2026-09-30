@@ -1,0 +1,11 @@
+sfcc-skills
+Copyright 2026 Vedesh Reddy Janga
+
+This project contains material derived from Salesforce B2C Commerce developer tooling agent skills
+(https://github.com/SalesforceCommerceCloud/b2c-developer-tooling, commit fff7d3346ab5a78808a62ad1fa655539a6e8b22b),
+Copyright (c) 2024 Salesforce, Inc., licensed under the Apache License, Version 2.0.
+
+Modifications: reorganized into a single router skill with per-topic reference files; corrected
+Script API, XML and CLI errors (see plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/VERIFICATION.md);
+added guardrail references, runnable examples, evals and verification scripts.
+Each file under references/ starts with a comment naming its upstream source file.

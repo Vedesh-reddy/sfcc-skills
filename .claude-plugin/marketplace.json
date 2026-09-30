@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "sfcc-b2c-commerce",
-      "description": "Complete SFCC / B2C Commerce reference: b2c CLI operations plus cartridge development (SFRA, ISML, hooks, jobs, SCAPI, SLAS, Page Designer and more).",
+      "description": "SFCC / B2C Commerce: SFRA, jobs, orders and payments, services, metadata, SCAPI and the b2c CLI — with guardrails and verified examples.",
       "source": "./plugins/sfcc-b2c-commerce",
       "category": "development"
     }

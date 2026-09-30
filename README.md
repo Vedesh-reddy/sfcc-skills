@@ -1,75 +1,66 @@
 # SFCC Skills — Salesforce B2C Commerce for Claude Code & Codex
 
-One consolidated agent skill covering **Salesforce B2C Commerce Cloud (SFCC / Demandware)**. It works with **Claude Code** and **OpenAI Codex** (both use the `SKILL.md` format).
+One agent skill for **Salesforce B2C Commerce Cloud (SFCC / Demandware)**, built so the agent **finds** the right guidance, **applies** it safely, and **verifies** its output.
 
-## What's inside
-
-A single `SKILL.md` that merges 37 focused skills, with a router table at the top so the agent jumps straight to the right section.
-
-**b2c CLI operations (18):** code deploys and code versions, sites and cartridge paths, WebDAV, logs, CLI config, jobs, site import/export (IMPEX), Page Designer content export, on-demand sandboxes (ODS), Managed Runtime (MRT / PWA Kit), eCDN, SLAS clients, Account Manager, users and roles, Custom SCAPI status, SCAPI schemas, Script API docs, and CIP analytics.
-
-**Development patterns and APIs (19):** SFRA controllers, ISML templates, forms, localization, Page Designer components, hooks (HookMgr), OrderMgr, custom objects, data querying, CacheMgr, `dw.system.Logger`, custom job steps, web services (LocalServiceRegistry), Custom SCAPI development, Shopper and Admin SCAPI, SLAS auth patterns (OTP, passkeys), Business Manager extensions, and metadata XML.
+- **Router, not a wall of text:** a 72-line `SKILL.md` sends the agent to the one or two files it needs, out of 37 topic folders.
+- **Guardrails:** transactions, iterator cleanup, sensitive logging, caching, authorization, and order/payment state (`references/core/`).
+- **Runtime-aware:** separates SFCC server script, ISML, storefront browser JS and Node.js.
+- **Verified:** XML against Salesforce XSDs, `dw.*` calls against the Script API types, `b2c` commands against the CLI source. Upstream errors are corrected and recorded in [VERIFICATION.md](plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/VERIFICATION.md).
+- **Complete examples:** controller → helper → service, chunk job + `steptypes.json` + `jobs.xml`, metadata with import steps, Razorpay payment reconciliation.
+- **Evals:** five realistic tasks with automated graders for Claude Code and Codex.
 
 ## Install in Claude Code
-
-Run these inside Claude Code:
 
 ```
 /plugin marketplace add Vedesh-reddy/sfcc-skills
 /plugin install sfcc-b2c-commerce@sfcc-skills
 ```
 
-Restart Claude Code. The skill loads automatically whenever you work on SFCC.
-
-To get updates later:
-
-```
-/plugin marketplace update sfcc-skills
-```
+Restart Claude Code. Update later with `/plugin marketplace update sfcc-skills`.
 
 ## Install in Codex
 
-Codex reads skills from `~/.agents/skills/` (for all projects) or `.agents/skills/` inside a repo (for that project only).
-
-**For all projects:**
+Codex reads skills from `~/.agents/skills/` (all projects) or `.agents/skills/` in a repo (one project). Copy the **whole skill folder**: `SKILL.md` links to `references/` and `examples/`.
 
 ```bash
 git clone https://github.com/Vedesh-reddy/sfcc-skills.git /tmp/sfcc-skills
-mkdir -p ~/.agents/skills/sfcc-b2c-commerce
-cp /tmp/sfcc-skills/plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/SKILL.md ~/.agents/skills/sfcc-b2c-commerce/
+mkdir -p ~/.agents/skills
+rm -rf ~/.agents/skills/sfcc-b2c-commerce
+cp -r /tmp/sfcc-skills/plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce ~/.agents/skills/
 ```
 
-**For one project only** (run from the project root):
+For one project, use `.agents/skills/` in the project root instead of `~/.agents/skills/`. Restart Codex and run `/skills` to confirm `sfcc-b2c-commerce` is listed.
+
+## Layout
+
+```
+.claude-plugin/marketplace.json
+plugins/sfcc-b2c-commerce/
+  .claude-plugin/plugin.json
+  skills/sfcc-b2c-commerce/
+    SKILL.md              router: find → apply → verify
+    VERIFICATION.md       what was checked, what was corrected, what wasn't verified
+    references/core/      runtimes, guardrails, review checklist
+    references/<topic>/   index.md + detail files (37 topics)
+    examples/             4 complete examples + unit tests
+evals/                    tasks, fixtures, grader, runner
+scripts/                  verify.sh and individual checkers
+```
+
+## Verify and evaluate
 
 ```bash
-mkdir -p .agents/skills/sfcc-b2c-commerce
-curl -L -o .agents/skills/sfcc-b2c-commerce/SKILL.md \
-  https://raw.githubusercontent.com/Vedesh-reddy/sfcc-skills/main/plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/SKILL.md
+scripts/verify.sh --fetch     # downloads pinned Salesforce sources, runs all checks
+evals/run.sh claude           # run the eval tasks with Claude Code and grade them
+evals/run.sh codex
 ```
 
-Restart Codex, then run `/skills` to confirm `sfcc-b2c-commerce` is listed. Codex will use it automatically on SFCC tasks, or you can call it directly with `$sfcc-b2c-commerce`.
+Requires `python3`, `xmllint` (libxml2), `node` 18+, `git`. See [evals/README.md](evals/README.md).
 
-## Try it
+## Updating from upstream
 
-Ask something like:
+Content comes from `SalesforceCommerceCloud/b2c-developer-tooling`. To move to a newer commit: change `UPSTREAM_SHA` in `scripts/verify.sh`, re-sync the topic files, run `scripts/verify.sh --fetch`, fix what fails, add a `CHANGELOG.md` entry, bump `version` in `plugin.json`.
 
-- "Deploy my cartridges to the sandbox and activate the code version"
-- "Write an SFRA controller that returns JSON for a product quick view"
-- "Create a chunk-oriented job step that exports orders to SFTP"
-- "Set up a Custom SCAPI endpoint with a custom OAuth scope"
+## License
 
-## Requirements
-
-The CLI sections use Salesforce's `b2c` CLI. If it isn't installed globally, run it with `npx @salesforce/b2c-cli <command>`.
-
-## Repo layout
-
-```
-.claude-plugin/marketplace.json                          # Claude Code marketplace
-plugins/sfcc-b2c-commerce/.claude-plugin/plugin.json     # Plugin manifest
-plugins/sfcc-b2c-commerce/skills/sfcc-b2c-commerce/SKILL.md   # The skill (used by both agents)
-```
-
-## Attribution
-
-Content is consolidated from Salesforce's B2C Commerce developer tooling skills. See LICENSE for terms.
+Apache-2.0. Derived from Salesforce's B2C developer tooling skills (Copyright (c) 2024 Salesforce, Inc.); see [NOTICE](NOTICE).

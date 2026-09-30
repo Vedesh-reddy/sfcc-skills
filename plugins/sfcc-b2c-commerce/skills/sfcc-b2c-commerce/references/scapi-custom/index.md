@@ -1,0 +1,124 @@
+<!-- source: b2c-scapi-custom/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** Check custom SCAPI endpoint registration status using the b2c CLI. Use this skill whenever the user needs to verify that their custom API endpoints are registered and working, debug 404 or "endpoint not found" errors on custom APIs, or list custom API endpoints and their deployment status — even if they just say "my custom API returns 404" or "is my endpoint deployed".
+
+# B2C SCAPI Custom APIs Skill
+
+Use the `b2c` CLI plugin to manage SCAPI Custom API endpoints and check their registration status.
+
+When B2C MCP is available, prefer `scapi_custom_apis_get_status` for registration
+and `scapi_schemas_list` for live contracts. For Admin custom API execution, read
+`skill://mcp/scapi/SKILL.md`; fetch the contract through `scapi.request` in the
+program before calling its endpoints. Schema reads need `sfcc.scapi-schemas`;
+execution needs the declared `c_*` scope. Shopper execution is unsupported.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli scapi custom status`).
+
+## Configuration
+
+Values like `tenantId`, `shortCode`, `clientId`, and `clientSecret` resolve from `dw.json` / `SFCC_*` env vars / the active instance / configuration plugins. Examples below show minimal usage; **add flags only to override configured values** — passing `--client-id`/`--client-secret`/`--tenant-id`/`--short-code` is usually unnecessary. If a required value is missing, the CLI emits an actionable error pointing at the flag, env var, and config key.
+
+Run `b2c setup inspect` to see the resolved configuration and which source provided each value (`--json` for scripting; secrets stay masked by default). For precedence rules and troubleshooting, see `references/config/index.md`.
+
+## Tenant ID vs. Organization ID
+
+The tenant ID identifies your B2C Commerce instance. It is **not** the same as the organization ID:
+
+- **Tenant ID**: `zzxy_prd` (the `tenantId` value in dw.json, or `--tenant-id` override)
+- **Organization ID**: `f_ecom_zzxy_prd` (used in SCAPI URLs, has `f_ecom_` prefix)
+
+### Deriving Tenant ID from Hostname
+
+For sandbox instances, derive the tenant ID from the hostname by replacing hyphens with underscores:
+
+| Hostname                                   | Tenant ID  |
+| ------------------------------------------ | ---------- |
+| `zzpq-013.dx.commercecloud.salesforce.com` | `zzpq_013` |
+| `zzxy-001.dx.commercecloud.salesforce.com` | `zzxy_001` |
+| `abcd-dev.dx.commercecloud.salesforce.com` | `abcd_dev` |
+
+For production instances, use your realm and instance identifier (e.g., `zzxy_prd`).
+
+## Examples
+
+### Get Custom API Endpoint Status
+
+```bash
+# list all Custom API endpoints for the configured tenant
+b2c scapi custom status
+
+# list with JSON output
+b2c scapi custom status --json
+
+# target a different tenant than the active config
+b2c scapi custom status --tenant-id zzxy_prd
+```
+
+### Filter by Status
+
+```bash
+# list only active endpoints
+b2c scapi custom status --status active
+
+# list only endpoints that failed to register
+b2c scapi custom status --status not_registered
+```
+
+### Group by Type or Site
+
+```bash
+# group endpoints by API type (Admin vs Shopper)
+b2c scapi custom status --group-by type
+
+# group endpoints by site
+b2c scapi custom status --group-by site
+```
+
+### Customize Output Columns
+
+```bash
+# show extended columns (includes error reasons, sites, etc.)
+b2c scapi custom status --extended
+
+# select specific columns to display
+b2c scapi custom status --columns type,apiName,status,sites
+
+# available columns: type, apiName, apiVersion, cartridgeName, endpointPath, httpMethod, status, sites, securityScheme, operationId, schemaFile, implementationScript, errorReason, id
+```
+
+### Debug Failed Registrations
+
+```bash
+# quickly find and diagnose failed Custom API registrations
+b2c scapi custom status --status not_registered --columns type,apiName,endpointPath,errorReason
+```
+
+### Configuration Overrides
+
+The tenant ID and short code can be overridden via flags or environment variables:
+
+- `--tenant-id` / `SFCC_TENANT_ID` / `tenantId` in dw.json
+- `--short-code` / `SFCC_SHORTCODE` / `shortCode` in dw.json
+
+### More Commands
+
+See `b2c scapi custom --help` for a full list of available commands and options.
+
+## OAuth Scopes (manual token minting)
+
+`b2c scapi custom status` injects the scopes it needs automatically — the domain scope `sfcc.custom-apis` plus the tenant scope `SALESFORCE_COMMERCE_API:<tenant_id>`. You don't pass these for the command itself.
+
+When you mint a token **by hand** (with `b2c auth token` or curl) to call a custom Admin API directly, that injection does **not** happen — you must list both the tenant scope and your scope(s) yourself. `b2c auth token` accepts multiple scopes (repeat `--auth-scope` or comma-separate):
+
+```bash
+# Token for calling a custom Admin API endpoint
+b2c auth token \
+  --auth-scope "SALESFORCE_COMMERCE_API:zzpq_013" \
+  --auth-scope c_my_admin_scope
+```
+
+A token missing the tenant scope returns 403. See `references/custom-api-development/index.md` (Testing Reference) for full request examples.
+
+## Related Skills
+
+- `references/custom-api-development/index.md` - Creating Custom API endpoints (schema, script, mapping)
+- `references/code/index.md` - Deploying and activating code versions (triggers registration)

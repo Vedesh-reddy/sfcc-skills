@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+
+    <!-- Product: jewellery attribute (enum). Element order inside attribute-definition is enforced by metadata.xsd. -->
+    <type-extension type-id="Product">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="metalPurity">
+                <display-name xml:lang="x-default">Metal Purity</display-name>
+                <description xml:lang="x-default">Gold/silver purity shown on PDP and used in feeds</description>
+                <type>enum-of-string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>true</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">22K (916)</display>
+                        <value>916</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">18K (750)</display>
+                        <value>750</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Sterling Silver (925)</display>
+                        <value>925</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Jewellery">
+                <display-name xml:lang="x-default">Jewellery</display-name>
+                <attribute attribute-id="metalPurity"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <!-- Order: payment reconciliation state (used by examples/payment-reconciliation). -->
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="razorpayOrderId">
+                <display-name xml:lang="x-default">Razorpay Order ID</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>64</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paymentReconState">
+                <display-name xml:lang="x-default">Payment Reconciliation State</display-name>
+                <type>enum-of-string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Pending</display>
+                        <value>PENDING</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Uncertain (retrying)</display>
+                        <value>UNCERTAIN</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Resolved: paid</display>
+                        <value>RESOLVED_PAID</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Resolved: not paid</display>
+                        <value>RESOLVED_UNPAID</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Manual review</display>
+                        <value>MANUAL_REVIEW</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="paymentReconAttempts">
+                <display-name xml:lang="x-default">Payment Reconciliation Attempts</display-name>
+                <type>int</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="paymentReconNote">
+                <display-name xml:lang="x-default">Payment Reconciliation Note</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>1000</field-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="PaymentReconciliation">
+                <display-name xml:lang="x-default">Payment Reconciliation</display-name>
+                <attribute attribute-id="razorpayOrderId"/>
+                <attribute attribute-id="paymentReconState"/>
+                <attribute attribute-id="paymentReconAttempts"/>
+                <attribute attribute-id="paymentReconNote"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <!-- Site preference used by examples/controller-helper-service. -->
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="deliveryEstimateEnabled">
+                <display-name xml:lang="x-default">Enable Delivery Estimate</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="ExampleFeatures">
+                <display-name xml:lang="x-default">Example Features</display-name>
+                <attribute attribute-id="deliveryEstimateEnabled"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

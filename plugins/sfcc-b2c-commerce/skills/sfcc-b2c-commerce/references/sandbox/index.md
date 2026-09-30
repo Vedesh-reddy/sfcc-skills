@@ -1,0 +1,110 @@
+<!-- source: b2c-sandbox/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** Create and manage on-demand sandboxes (ODS) for B2C Commerce using the b2c CLI. Use this skill whenever the user needs to spin up a new development sandbox, list running sandboxes, start/stop/restart an instance, or manage sandbox lifecycle — even if they just say "I need a sandbox" or "restart my instance".
+
+# B2C Sandbox Skill
+
+Only create or delete sandboxes when explicitly requested. Always confirm destructive actions.
+
+Use the `b2c` CLI plugin to manage Salesforce B2C Commerce On-demand sandboxes (ODS). Only create or delete a sandbox if explicitly asked as this may be a billable or destructible action.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli sandbox list`).
+
+> **Alias:** The `ods` prefix is still supported as a backward-compatible alias (e.g., `b2c ods list` works the same as `b2c sandbox list`).
+
+## Configuration & Authentication
+
+The CLI auto-discovers credentials from `SFCC_*` environment variables (including project `.env`), the selected project-local or shared `dw.json`, and configuration plugins. `package.json` supplies only non-sensitive defaults. **Flags like `--client-id` and `--client-secret` are usually unnecessary** — only pass them to override what's auto-detected. Use `--user-auth` only when you need browser-based login (e.g., no client secret, or interactive use).
+
+Run `b2c setup inspect` to see the resolved configuration and which source provided each value (use `--json` for scripting; secrets stay masked by default). For precedence rules and troubleshooting, see `references/config/index.md`.
+
+## Sandbox ID Formats
+
+Commands that operate on a specific sandbox accept two ID formats:
+
+- **UUID**: The full sandbox UUID (e.g., `abc12345-1234-1234-1234-abc123456789`)
+- **Realm-instance**: The realm-instance format (e.g., `zzzv-123` or `zzzv_123`)
+
+The realm-instance format uses the 4-character realm code followed by a dash or underscore and the instance number. When using a realm-instance format, the CLI will automatically look up the corresponding UUID.
+
+## Examples
+
+### List Sandboxes
+
+```bash
+b2c sandbox list
+
+# for realm zzpq with JSON output
+b2c sandbox list --realm zzpq --json
+
+# filter by status and those created by a specific user, only print the columns id,state,hostname
+b2c sandbox list --filter-params 'state=started,creating&createdBy=clavery@salesforce.com' --realm zzpq --columns id,state,hostname
+```
+
+### Create Sandbox
+
+Only create a sandbox if explicitly asked as this may be a billable action.
+
+```bash
+# create in realm zzpq with 4 hour TTL (0 = infinite); json output and wait for completion (this may take 5-10 minutes; timeout is 10 minutes)
+b2c sandbox create --realm zzpq --ttl 4 --json --wait
+
+# create in realm zzpq with large profile (medium is default)
+b2c sandbox create --realm zzpq --profile large
+
+# create without automatic OCAPI/WebDAV permissions
+b2c sandbox create --realm zzpq --no-set-permissions
+
+# use a different client ID for default permissions
+b2c sandbox create --realm zzpq --permissions-client-id my-other-client
+
+# custom OCAPI settings (replaces defaults)
+b2c sandbox create --realm zzpq --ocapi-settings '[{"client_id":"my-client","resources":[{"resource_id":"/code_versions","methods":["get"]}]}]'
+
+# with start/stop scheduler
+b2c sandbox create --realm zzpq --start-scheduler '{"weekdays":["MONDAY","TUESDAY"],"time":"08:00:00Z"}' --stop-scheduler '{"weekdays":["MONDAY","TUESDAY"],"time":"19:00:00Z"}'
+
+# get full log trace output to debug
+b2c sandbox create --realm zzpq --log-level trace
+```
+
+### Get/Start/Stop/Restart/Delete Sandbox
+
+Commands that operate on a specific sandbox support both UUID and realm-instance formats:
+
+```bash
+# Using UUID
+b2c sandbox get abc12345-1234-1234-1234-abc123456789
+b2c sandbox start abc12345-1234-1234-1234-abc123456789
+b2c sandbox stop abc12345-1234-1234-1234-abc123456789
+
+# Using realm-instance format
+b2c sandbox get zzzv-123
+b2c sandbox start zzzv_123
+b2c sandbox stop zzzv-123
+b2c sandbox restart zzzv-123
+b2c sandbox delete zzzv-123 --force
+```
+
+### Clone Sandbox
+
+```bash
+# clone a sandbox (defaults to source profile, 24h TTL)
+b2c sandbox clone create zzzv-123
+
+# clone with a different profile and wait for completion
+b2c sandbox clone create zzzv-123 --target-profile large --wait
+
+# create 3 clones from the same source in one request (1 to many cloning), and wait for all of them
+b2c sandbox clone create zzzv-123 --target-count 3 --wait
+
+# list clones for a sandbox, optionally filtered to a specific 1 to many batch
+b2c sandbox clone list zzzv-123
+b2c sandbox clone list zzzv-123 --batch-id batch-abcd-002-1700000000000-a1b2c3d4
+
+# get details for a specific clone
+b2c sandbox clone get zzzv-123 aaaa-002-1642780893121
+```
+
+### More Commands
+
+See `b2c sandbox --help` for a full list of available commands and options in the `sandbox` topic.

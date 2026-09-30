@@ -1,0 +1,184 @@
+<!-- source: b2c-webdav/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** List, upload, download, and manage files on B2C Commerce instances via WebDAV. Use this skill whenever the user needs to upload files to IMPEX directories, download exports from an instance, list remote files, create or delete directories, zip or unzip files on the server, manage file transfers to sandboxes, or browse instance file systems — even if they just say "upload a file to the instance" or "check what's in the IMPEX folder".
+
+# B2C WebDAV Skill
+
+Use the `b2c` CLI plugin to perform WebDAV file operations on Salesforce B2C Commerce instances. This includes listing files, uploading, downloading, and managing files across different WebDAV roots.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli webdav ls`).
+
+## MCP equivalent
+
+Prefer `webdav_list`, `webdav_get`, and `webdav_put` when available for one-directory
+listings, exact text reads, and single-file transfers. `webdav_get` uses HTTP byte
+ranges (`offset`, `maxBytes`, returned `size`/`nextOffset`); `outputPath` downloads a
+whole file. `webdav_put` accepts `content` or `sourcePath`; parent must exist,
+replacement needs `overwrite: true`. Local paths are on the MCP host, relative to
+`projectDirectory`. Transfers cap at 64 MiB; no prerequisite skill read.
+Use `cartridge_deploy` for local cartridge selection/mapping. Keep the CLI for
+recursive transfers, mkdir, delete, ZIP/UNZIP, or extra flags not exposed by MCP.
+
+## Configuration & Authentication
+
+The CLI auto-discovers the target instance and credentials from `SFCC_*` environment variables (including project `.env`), the selected project-local or shared `dw.json`, and configuration plugins. `package.json` supplies only non-sensitive defaults. **Flags like `--server`, `--client-id`, `--client-secret`, `--username`, and `--password` are usually unnecessary** — only pass them to override what's auto-detected.
+
+Run `b2c setup inspect` to see the resolved configuration and which source provided each value (use `--json` for scripting; secrets stay masked by default). For precedence rules and troubleshooting, see `references/config/index.md`.
+
+## WebDAV Roots
+
+The `--root` flag specifies the WebDAV directory:
+
+- `impex` (default) - Import/Export directory
+- `temp` - Temporary files
+- `cartridges` - Code cartridges
+- `realmdata` - Realm data
+- `catalogs` - Product catalogs
+- `libraries` - Content libraries
+- `static` - Static resources
+- `dynamic` - Site-specific files, including Velocity templates
+- `logs` - Application logs
+- `securitylogs` - Security logs
+
+## Examples
+
+### Dynamic Site Files
+
+Use `--root=dynamic` with the site ID as the first remote path segment. For example,
+`MySite/mockData/mock.vm` resolves to `Sites/Dynamic/MySite/mockData/mock.vm`.
+This location holds site-specific files independently of code versions, including
+Velocity templates used by `dw.template.Velocity.renderTemplate()`.
+
+```bash
+b2c webdav ls --root=dynamic MySite/
+b2c webdav mkdir --root=dynamic MySite/mockData
+b2c webdav put --root=dynamic ./mock.vm MySite/mockData/
+b2c webdav get --root=dynamic MySite/mockData/mock.vm -o ./mock.vm
+```
+
+The same root and site-prefixed paths work with `rm`, `zip`, and `unzip`.
+
+### List Files
+
+```bash
+# list files in the default IMPEX root
+b2c webdav ls
+
+# list files in a specific path
+b2c webdav ls src/instance
+
+# list files in the cartridges root
+b2c webdav ls --root=cartridges
+
+# list files with JSON output
+b2c webdav ls --root=impex --json
+```
+
+### Download Files
+
+```bash
+# download a file from IMPEX (default root)
+b2c webdav get src/instance/export.zip
+
+# download to a specific local path
+b2c webdav get src/instance/export.zip -o ./downloads/export.zip
+
+# download from a specific root
+b2c webdav get customerror.log --root=logs
+
+# output file content to stdout
+b2c webdav get src/instance/data.xml -o -
+```
+
+### Upload Files
+
+```bash
+# upload a file to IMPEX
+b2c webdav put ./local-file.zip src/instance/
+
+# upload to a specific root
+b2c webdav put ./my-cartridge.zip --root=cartridges
+```
+
+### Create Directories
+
+```bash
+# create a directory in IMPEX
+b2c webdav mkdir src/instance/my-folder
+
+# create a directory in a specific root
+b2c webdav mkdir my-folder --root=temp
+```
+
+### Delete Files
+
+```bash
+# delete a file
+b2c webdav rm src/instance/old-export.zip
+
+# delete from a specific root
+b2c webdav rm old-file.txt --root=temp
+```
+
+### Delete Cartridges
+
+To delete cartridges from a code version, use the `cartridges` root with the path format `{code-version}/{cartridge-name}`:
+
+```bash
+# delete a cartridge from a code version
+b2c webdav rm v25_1_0/app_mysite --root=cartridges
+
+# delete multiple cartridges
+b2c webdav rm v25_1_0/app_mysite --root=cartridges
+b2c webdav rm v25_1_0/int_myintegration --root=cartridges
+
+# list cartridges in a code version first
+b2c webdav ls v25_1_0 --root=cartridges
+```
+
+**Important:** The path is `{code-version}/{cartridge-name}`, not `/cartridges/{code-version}/...`. The `--root=cartridges` (or `-r cartridges`) flag sets the WebDAV root.
+
+### Zip/Unzip Remote Files
+
+```bash
+# create a zip archive of a remote directory
+b2c webdav zip src/instance/my-folder
+
+# extract a remote zip archive
+b2c webdav unzip src/instance/archive.zip
+```
+
+### Import-Set Managed State
+
+Do not manually script marker files when the goal is to apply a local set of site import/export archives once. Use the higher-level command:
+
+```bash
+b2c job import-set
+```
+
+To start over without deleting the previous history, use a new set ID and keep using it on subsequent runs:
+
+```bash
+b2c job import-set --set-id migrations-reset-20260818
+```
+
+To reset the default history in place, remove it and rerun the import set:
+
+```bash
+b2c webdav rm --root=impex b2c-cli/import-sets/migrations
+b2c job import-set
+```
+
+For a custom set ID, replace the final `migrations` path segment with that ID. Resetting in place permanently forgets which archives succeeded and makes every current archive pending again, so only use it when every archive is safe to reapply. `--break-lock` is for recovery and does not reset history.
+
+For the canonical workflow, naming convention, retry behavior, and recovery rules, use the `references/site-import-export/index.md`'s **Apply an Ordered, Idempotent Import Set** section.
+
+### More Commands
+
+See `b2c webdav --help` for a full list of available commands and options in the `webdav` topic.
+
+## Related Skills
+
+- `references/logs/index.md` - Filtered log retrieval, search, and real-time tailing (preferred for log exploration)
+- `references/code/index.md` - Higher-level code deployment (preferred for cartridge upload)
+- `references/site-import-export/index.md` - Canonical site archive and idempotent import-set guidance
+- `references/job/index.md` - Run and monitor jobs

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["es5"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": { "dw/*": ["../../.cache/b2c-developer-tooling/packages/b2c-script-types/types/dw/*"] },
+    "types": []
+  },
+  "include": [
+    "../../.cache/b2c-developer-tooling/packages/b2c-script-types/types/global.d.ts",
+    "shims.d.ts",
+    "../../plugins/**/examples/**/cartridge/**/*.js"
+  ]
+}

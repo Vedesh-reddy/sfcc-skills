@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns="http://www.demandware.com/xml/impex/jobs/2015-07-01">
+    <job job-id="Example-ReconcileRazorpayPayments">
+        <description>Reconciles CREATED/FAILED Razorpay orders with the gateway</description>
+        <flow>
+            <context site-id="RefArch"/>
+            <step step-id="Reconcile" type="custom.ExampleReconcileRazorpayPayments" enforce-restart="false">
+                <description>Reconcile payments</description>
+                <parameters>
+                    <parameter name="PaymentWindowMinutes">60</parameter>
+                    <parameter name="MaxAttempts">12</parameter>
+                    <parameter name="LookbackHours">72</parameter>
+                    <parameter name="PaymentMethodID">RAZORPAY</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <triggers>
+            <run-recurring enabled="false">
+                <recurrence>
+                    <date-from>2026-01-01Z</date-from>
+                    <start-time>00:00:00.000Z</start-time>
+                    <interval>15m</interval>
+                    <day-of-week>
+                        <weekday>Monday</weekday>
+                        <weekday>Tuesday</weekday>
+                        <weekday>Wednesday</weekday>
+                        <weekday>Thursday</weekday>
+                        <weekday>Friday</weekday>
+                        <weekday>Saturday</weekday>
+                        <weekday>Sunday</weekday>
+                    </day-of-week>
+                </recurrence>
+            </run-recurring>
+        </triggers>
+    </job>
+</jobs>

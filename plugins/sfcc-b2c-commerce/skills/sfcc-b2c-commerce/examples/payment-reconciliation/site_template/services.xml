@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="example.razorpay.cred">
+        <url>https://api.razorpay.com/v1/orders/</url>
+        <user-id>REPLACE_WITH_KEY_ID_IN_BM</user-id>
+        <password>REPLACE_WITH_KEY_SECRET_IN_BM</password>
+    </service-credential>
+    <service-profile service-profile-id="example.razorpay.profile">
+        <timeout-millis>5000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>10</cb-calls>
+        <cb-millis>60000</cb-millis>
+    </service-profile>
+    <service service-id="example.razorpay.http">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>Razorpay</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>example.razorpay.profile</profile-id>
+        <credential-id>example.razorpay.cred</credential-id>
+    </service>
+</services>

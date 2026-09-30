@@ -1,0 +1,174 @@
+<!-- source: b2c-content/SKILL.md (Salesforce B2C developer tooling skills) -->
+> **Scope:** Export, list, and validate Page Designer content from B2C Commerce libraries. Use this skill whenever the user needs to export Page Designer pages, components, or content blocks, list pages in a content library, validate page JSON or metadefinitions, discover page IDs, migrate content between instances, or work with library XML offline. Also use when extracting content for review or building content deployment pipelines -- even if they just say 'export the homepage' or 'what pages are in the shared library'.
+
+# B2C Content Skill
+
+Use the `b2c` CLI to export, list, and validate Page Designer content from Salesforce B2C Commerce content libraries.
+
+> **Tip:** If `b2c` is not installed globally, use `npx @salesforce/b2c-cli` instead (e.g., `npx @salesforce/b2c-cli content export homepage`).
+
+## Configuration & Authentication
+
+The CLI auto-discovers the target instance and credentials from `SFCC_*` environment variables (including project `.env`), the selected project-local or shared `dw.json`, and configuration plugins. `package.json` supplies only non-sensitive defaults. **Flags like `--server`, `--client-id`, `--client-secret`, `--username`, and `--password` are usually unnecessary** — only pass them to override what's auto-detected.
+
+Run `b2c setup inspect` to see the resolved configuration and which source provided each value (use `--json` for scripting; secrets stay masked by default). For precedence rules and troubleshooting, see `references/config/index.md`.
+
+Online export/list starts a system export job: SCAPI uses `sfcc.jobs.rw` plus the tenant scope; WebDAV downloads the archive and assets. `--api-backend ocapi` forces OCAPI; `auto` permits fallback. If an error only mentions OCAPI, retry with `--api-backend scapi` to expose the SCAPI failure before assuming OCAPI permissions are needed.
+
+## Examples
+
+### Export Pages
+
+```bash
+# export a single page from a shared library
+b2c content export homepage --library SharedLibrary
+
+# export multiple pages
+b2c content export homepage about-us contact --library SharedLibrary
+
+# export pages matching a regex pattern
+b2c content export "hero-.*" --library SharedLibrary --regex
+
+# export to a specific output directory
+b2c content export homepage --library SharedLibrary -o ./my-export
+
+# export a specific component by ID
+b2c content export hero-banner --library SharedLibrary
+
+# export a content block (reusable fragment) by ID
+b2c content export DiscoverContentBlock --library RefArch --site-library
+
+# export from a site-private library
+b2c content export homepage --library RefArch --site-library
+
+# preview without downloading (dry run)
+b2c content export homepage --library SharedLibrary --dry-run
+
+# export with JSON output
+b2c content export homepage --library SharedLibrary --json
+
+# export from a local XML file (offline, no instance needed)
+b2c content export homepage --library SharedLibrary --library-file ./library.xml --offline
+
+# filter pages by folder classification
+b2c content export homepage --library SharedLibrary --folder seasonal
+
+# custom asset extraction paths
+b2c content export homepage --library SharedLibrary -q "image.path" -q "video.url"
+
+# include orphan components in export
+b2c content export homepage --library SharedLibrary --keep-orphans
+```
+
+### Export Directly into an Import-Set Migration
+
+The focused content exporter writes standard archive-relative `libraries/` or site-library files directly into the directory passed to `--output`; unlike `b2c job export`, it does not add a generated `*_export` wrapper. Preview first, then use the final timestamped migration directory and review the exported XML and assets in place:
+
+```bash
+b2c content export homepage --library SharedLibrary --dry-run --show-tree
+b2c content export homepage \
+  --library SharedLibrary \
+  --output migrations/20260815T120000-update-homepage
+```
+
+For a site-private library, configure or pass `--site-library`. Do not require a temporary directory and copy step. Never write into an existing or applied migration. See the upstream `b2c-import-set-migrations` skill (not bundled here) for archive identity, trimming, and deployment rules.
+
+### List Content
+
+```bash
+# list all content in a library
+b2c content list --library SharedLibrary
+
+# list only pages
+b2c content list --library SharedLibrary --type page
+
+# list content blocks (reusable fragments; includes unlinked blocks)
+b2c content list --library SharedLibrary --type fragment
+
+# list including components
+b2c content list --library SharedLibrary --components
+
+# show tree structure
+b2c content list --library SharedLibrary --tree
+
+# list from a site-private library
+b2c content list --library RefArch --site-library
+
+# list from a local XML file
+b2c content list --library SharedLibrary --library-file ./library.xml
+
+# JSON output
+b2c content list --library SharedLibrary --json
+```
+
+### Content Blocks
+
+Content blocks are Page Designer "content blocks" — reusable `fragment.*`-typed content that is **shared** across pages (one definition, linked from many places). They are listed distinctly in the tree as `(CONTENT BLOCK)`, counted separately in export summaries, and can be exported by ID like a component (a Layout content block keeps its region children). `b2c content list --type fragment` shows the deduplicated catalog of every content block in a library, including blocks not currently linked to any page.
+
+### Configuration
+
+The `--library` flag can be configured in `dw.json` or `package.json` so you don't need to pass it every time:
+
+```json
+// dw.json
+{
+  "hostname": "my-sandbox.demandware.net",
+  "content-library": "SharedLibrary"
+}
+```
+
+```json
+// package.json
+{
+  "b2c": {
+    "contentLibrary": "SharedLibrary"
+  }
+}
+```
+
+With a configured library, commands become shorter:
+
+```bash
+b2c content export homepage
+b2c content list --type page
+```
+
+### Validate Metadefinitions
+
+```bash
+# validate a single metadefinition file
+b2c content validate cartridge/experience/pages/storePage.json
+
+# validate all metadefinitions in a directory recursively
+b2c content validate cartridge/experience/
+
+# validate with a glob pattern
+b2c content validate 'cartridge/experience/**/*.json'
+
+# explicitly specify the schema type
+b2c content validate --type componenttype mycomponent.json
+
+# JSON output for CI/scripting
+b2c content validate cartridge/experience/ --json
+```
+
+Schema types are auto-detected from file paths (`experience/pages/` → pagetype, `experience/components/` → componenttype) and from JSON content. Use `--type` to override.
+
+### More Commands
+
+See `b2c content --help` for a full list of available commands and options in the `content` topic.
+
+## Troubleshooting
+
+- **"Library is required"** -- Set `--library` flag or configure `content-library` in `dw.json`.
+- **Authentication errors** -- Inspect resolved configuration first. SCAPI needs client-credentials or JWT authentication with `sfcc.jobs.rw` and the tenant scope; browser login is OCAPI/WebDAV-only. Use the upstream `b2c-auth` skill (not bundled here) for setup. `--library-file` skips the remote export job; add `--offline` to skip asset downloads too.
+- **Library not found** -- Verify the library ID matches exactly. For site-private libraries, add `--site-library`.
+- **No content found** -- Check that the page/content IDs exist. Use `b2c content list` to discover available IDs.
+- **Timeout errors** -- Large libraries may exceed the default timeout. Use `--timeout <seconds>` to increase it.
+
+## Related Skills
+
+- the upstream `b2c-import-set-migrations` skill (not bundled here) - Ordered, idempotent migrations built from focused content exports
+- `references/site-import-export/index.md` - Site archive import/export operations
+- `references/webdav/index.md` - Low-level file operations on content libraries
+- `references/config/index.md` - Configuration and credential management

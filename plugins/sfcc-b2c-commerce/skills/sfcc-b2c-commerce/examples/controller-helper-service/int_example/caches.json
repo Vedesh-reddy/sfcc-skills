@@ -1,0 +1,8 @@
+{
+    "caches": [
+        {
+            "id": "deliveryEstimates",
+            "expireAfterSeconds": 900
+        }
+    ]
+}

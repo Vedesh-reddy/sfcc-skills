@@ -1,0 +1,42 @@
+{
+    "step-types": {
+        "chunk-script-module-step": [
+            {
+                "@type-id": "custom.ExampleExportProductFeed",
+                "@supports-parallel-execution": "false",
+                "@supports-site-context": "true",
+                "@supports-organization-context": "false",
+                "description": "Exports online products (ID, name, metal purity) to a CSV in IMPEX/src/feeds.",
+                "module": "int_example_jobs/cartridge/scripts/steps/exportProductFeed.js",
+                "before-step-function": "beforeStep",
+                "total-count-function": "getTotalCount",
+                "read-function": "read",
+                "process-function": "process",
+                "write-function": "write",
+                "after-step-function": "afterStep",
+                "chunk-size": 200,
+                "transactional": "false",
+                "timeout-in-seconds": "3600",
+                "parameters": {
+                    "parameter": [
+                        {
+                            "@name": "FileNamePrefix",
+                            "@type": "string",
+                            "@required": "true",
+                            "@trim": "true",
+                            "description": "Output file name prefix, e.g. product-feed",
+                            "pattern": "^[a-zA-Z0-9_-]+$",
+                            "max-length": "50"
+                        }
+                    ]
+                },
+                "status-codes": {
+                    "status": [
+                        { "@code": "OK", "description": "Feed written." },
+                        { "@code": "ERROR", "description": "Feed not written; partial file removed." }
+                    ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "step-types": {
+        "script-module-step": [
+            {
+                "@type-id": "custom.ExampleReconcileRazorpayPayments",
+                "@supports-parallel-execution": "false",
+                "@supports-site-context": "true",
+                "@supports-organization-context": "false",
+                "description": "Places captured Razorpay orders, fails definitively unpaid ones, flags everything uncertain.",
+                "module": "int_example_payments/cartridge/scripts/steps/reconcileRazorpayPayments.js",
+                "function": "execute",
+                "transactional": "false",
+                "timeout-in-seconds": "1800",
+                "parameters": {
+                    "parameter": [
+                        { "@name": "PaymentWindowMinutes", "@type": "long", "@required": "true", "description": "Minutes after creation before an unpaid order may be failed", "default-value": "60", "min-value": "15" },
+                        { "@name": "MaxAttempts", "@type": "long", "@required": "true", "description": "Uncertain checks before an order is flagged for manual review", "default-value": "12", "min-value": "1" },
+                        { "@name": "LookbackHours", "@type": "long", "@required": "true", "description": "How far back to look for CREATED and FAILED orders", "default-value": "72", "min-value": "1" },
+                        { "@name": "PaymentMethodID", "@type": "string", "@required": "true", "description": "Payment method ID used for Razorpay in checkout", "default-value": "RAZORPAY" }
+                    ]
+                },
+                "status-codes": {
+                    "status": [
+                        { "@code": "OK", "description": "All orders reconciled or waiting." },
+                        { "@code": "FINISHED_WITH_REVIEW", "description": "Some orders are flagged MANUAL_REVIEW." },
+                        { "@code": "ERROR", "description": "Unexpected errors; see RazorpayRecon log." }
+                    ]
+                }
+            }
+        ]
+    }
+}
