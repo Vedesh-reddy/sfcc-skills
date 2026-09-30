@@ -1,32 +1,19 @@
 'use strict';
 
-/**
- * Chunk-oriented job step: export online products to CSV.
- *
- * Resource-safety contract:
- *  - every resource opened in beforeStep is released by closeResources(), which is idempotent;
- *  - closeResources() runs in afterStep AND in the catch block of read/process/write before rethrowing,
- *    because Salesforce documents afterStep as running after a *successful* step;
- *  - output goes to a .tmp file that is renamed only on success, so consumers never see a partial feed.
- */
 var ProductMgr = require('dw/catalog/ProductMgr');
 var File = require('dw/io/File');
 var FileWriter = require('dw/io/FileWriter');
 var CSVStreamWriter = require('dw/io/CSVStreamWriter');
 var Logger = require('dw/system/Logger');
 
-var log = Logger.getLogger('jobs', 'ExportProductFeed');
+var log = Logger.getLogger('product-feed-export', 'job-export');
 
-var products = null; // dw.util.SeekableIterator
-var fileWriter = null; // dw.io.FileWriter
-var csvWriter = null; // dw.io.CSVStreamWriter
+var products = null;
+var fileWriter = null;
+var csvWriter = null;
 var tmpFile = null;
 var finalFile = null;
 
-/**
- * Releases every open resource. Safe to call more than once.
- * @param {boolean} keepOutput - false deletes the partial temp file
- */
 function closeResources(keepOutput) {
     try {
         if (products) {
@@ -54,11 +41,7 @@ function closeResources(keepOutput) {
     }
 }
 
-/**
- * Runs fn; on any exception releases resources, then rethrows so the step ends in ERROR.
- * @param {Function} fn - step body
- * @returns {*} fn's return value
- */
+// afterStep is documented as running after a successful step, so failures clean up here too.
 function guarded(fn) {
     try {
         return fn();
@@ -77,11 +60,12 @@ exports.beforeStep = function (parameters) {
         }
         var baseName = parameters.FileNamePrefix + '_' + Date.now() + '.csv';
         finalFile = new File(dir, baseName);
+        // Consumers only ever see a complete file; it is renamed in afterStep.
         tmpFile = new File(dir, baseName + '.tmp');
 
         fileWriter = new FileWriter(tmpFile, 'UTF-8');
         csvWriter = new CSVStreamWriter(fileWriter);
-        csvWriter.writeNext('productID', 'name', 'metalPurity'); // varargs: one argument per column
+        csvWriter.writeNext('productID', 'name', 'metalPurity');
 
         products = ProductMgr.queryAllSiteProducts();
     });
@@ -100,7 +84,7 @@ exports.read = function () {
 exports.process = function (product) {
     return guarded(function () {
         if (!product.isOnline() || product.isMaster()) {
-            return undefined; // filtered out of the chunk
+            return undefined;
         }
         return [product.getID(), product.getName() || '', product.custom.metalPurity ? String(product.custom.metalPurity.getValue()) : ''];
     });
@@ -109,7 +93,7 @@ exports.process = function (product) {
 exports.write = function (rows) {
     guarded(function () {
         for (var i = 0; i < rows.size(); i++) {
-            // writeNext is varargs (String...), so spread the row array into arguments
+            // writeNext is varargs, one argument per column.
             csvWriter.writeNext.apply(csvWriter, rows.get(i));
         }
     });

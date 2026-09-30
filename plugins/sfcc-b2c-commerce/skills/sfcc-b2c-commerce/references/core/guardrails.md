@@ -1,6 +1,6 @@
 # SFCC guardrails
 
-Non-negotiable rules for server-side code. Each is checked in `review-checklist.md`; the examples in `../../examples/` implement all of them.
+[directive.md](directive.md) governs and overrides this file. Non-negotiable rules for server-side code. Each is checked in `review-checklist.md`; the examples in `../../examples/` implement all of them.
 
 ## 1. Transaction boundaries
 
@@ -21,7 +21,7 @@ Non-negotiable rules for server-side code. Each is checked in `review-checklist.
 
 ## 3. Sensitive logging
 
-- Use `Logger.getLogger(category, filePrefix)`; never `console`.
+- Use `Logger.getLogger('file-name-prefix', 'category-name')` — **file prefix first, category second**, both kebab-case (see `directive.md`); never `console` or the uncategorized `Logger.info/warn/error`.
 - Never log: credentials, API keys, tokens, session IDs, card data, full request/response bodies, addresses, emails, phone numbers.
 - Every service defines `filterLogMessage` and/or both `getRequestLogMessage` and `getResponseLogMessage`. On production, SFCC suppresses communication logs unless these exist, and once they exist **you** are responsible for masking.
 - Log identifiers (order number, payment ID, status codes), not payloads.

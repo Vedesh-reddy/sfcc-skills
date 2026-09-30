@@ -5,6 +5,18 @@ description: Salesforce B2C Commerce Cloud (SFCC / Demandware) development and o
 
 # SFCC / B2C Commerce
 
+## 0. Governing directive — read first, it overrides everything below
+
+Before any plan, edit, review or tool call, read [references/core/directive.md](references/core/directive.md) and follow it. Where anything else in this skill (references, examples, CLI docs) conflicts with it, the directive wins. Its non-negotiables:
+
+- **Never perform any Git action** — no staging, committing, pushing, pulling, branching, or Git via scripts/IDE. Stop at the working-tree change; the user runs Git.
+- **Smallest safe diff:** delete, reuse, or configure (Business Manager) before writing code; search the repo first; no speculative code, dependencies, caching or abstractions.
+- **Base and vendor cartridges are read-only** (`app_storefront_base`, `bm_app_storefront_base`, `modules`, vendor LINK cartridges); extend with `module.superModule` + `append`/`prepend`/`replace`.
+- **Logging:** `Logger.getLogger('file-name-prefix', 'category-name')`, both kebab-case; no secrets or unnecessary PII.
+- **UI:** kebab-case selectors, Bootstrap utilities over custom SCSS, **no CSS Grid** (except an owner-authorized `.categories-section`), accessibility preserved.
+- **Comments:** minimal, natural, explain *why*.
+- **Answer the 7 pre-implementation questions** and end implementation tasks with the directive's `Cartridge / File / Extension point / Change` statement and compliance report.
+
 Work in three passes: **find** the right guidance, **apply** it with the guardrails, **verify** before answering. Don't answer SFCC questions from memory when a file below covers them — this skill corrects several common errors (see [VERIFICATION.md](VERIFICATION.md)).
 
 ## 1. Find

@@ -25,6 +25,16 @@ pl = json.load(open(os.path.join(root, "plugins", "sfcc-b2c-commerce", ".claude-
 if mk["plugins"][0]["name"] != pl["name"]: problems.append("marketplace.json / plugin.json name mismatch")
 changelog = open(os.path.join(root, "CHANGELOG.md"), encoding="utf-8").read()
 if f"## {pl['version']}" not in changelog: problems.append(f"CHANGELOG.md has no entry for version {pl['version']}")
+LOG_OK = re.compile(r"getLogger\(\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\s*,\s*'[a-z0-9]+(?:-[a-z0-9]+)*'\s*\)")
+for dp, _, fs in os.walk(os.path.join(skill, "examples")):
+    for f in fs:
+        if f.endswith((".js", ".scss", ".css", ".isml")):
+            src = open(os.path.join(dp, f), encoding="utf-8").read()
+            for call in re.findall(r"getLogger\([^)]*\)", src):
+                if not LOG_OK.fullmatch(call): problems.append(f"{f}: logger not kebab-case prefix/category: {call}")
+            if re.search(r"display:\s*grid|grid-template", src): problems.append(f"{f}: CSS Grid is prohibited by the directive")
+if not os.path.exists(os.path.join(skill, "references", "core", "directive.md")): problems.append("directive.md missing")
+elif "references/core/directive.md" not in text.split("## 1.")[0]: problems.append("SKILL.md must point to the directive before section 1")
 for f in ("LICENSE", "NOTICE"):
     if not os.path.exists(os.path.join(root, f)): problems.append(f"{f} missing")
 print("\n".join(problems)); print(f"structure problems: {len(problems)}")

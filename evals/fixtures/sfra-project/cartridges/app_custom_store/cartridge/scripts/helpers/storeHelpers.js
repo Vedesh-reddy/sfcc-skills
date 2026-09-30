@@ -4,7 +4,7 @@ var Site = require('dw/system/Site');
 var Logger = require('dw/system/Logger');
 
 function getLogger() {
-    return Logger.getLogger('store', 'AppCustomStore');
+    return Logger.getLogger('app-custom-store', 'storefront');
 }
 
 function getFreeShippingThreshold() {

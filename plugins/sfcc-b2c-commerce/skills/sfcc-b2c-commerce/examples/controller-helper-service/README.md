@@ -16,6 +16,7 @@ A PDP "delivery estimate by PIN code" feature, split the way SFRA code should be
 - **Credentials** come from the BM service credential (`svc.getConfiguration().getCredential()`), never from code or site preferences. `setAuthentication('NONE')` because this API uses a key header, not BASIC.
 - **Logging**: `filterLogMessage` + `getRequestLogMessage` mask keys/tokens; `getResponseLogMessage` logs status and size only. Custom logger category, no request bodies or PII.
 - **Failures**: `result.ok` is always checked; failures are not cached (loader returns `undefined`); the browser gets a generic message, never the raw service error.
+- **Caching** is shown for completeness; per the governing directive, add a cache only when there is measured need.
 - **Input**: query parameters are validated in the helper before any product lookup or remote call.
 
 ## Deploy and verify

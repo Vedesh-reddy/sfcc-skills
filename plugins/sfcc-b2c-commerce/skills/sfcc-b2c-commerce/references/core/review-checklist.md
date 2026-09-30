@@ -1,6 +1,11 @@
 # Review checklist (run before handing back SFCC code)
 
-Answer each line for the code you just wrote. Any "no" is a defect to fix, not a note to add.
+Answer each line for the code you just wrote. Any "no" is a defect to fix, not a note to add. Then run the completion checks and report format in [directive.md](directive.md), which governs this list.
+
+**Directive**
+- [ ] No Git action was performed or suggested; work stops at the working-tree change.
+- [ ] Smallest safe diff: nothing that could be deleted, reused or configured instead; base/vendor cartridges untouched.
+- [ ] Loggers are `getLogger('kebab-prefix', 'kebab-category')`; new selectors kebab-case; no CSS Grid; accessibility intact.
 
 **Runtime**
 - [ ] The file's runtime is identified from its path (`runtimes.md`), and it uses only that runtime's APIs.

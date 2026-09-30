@@ -28,7 +28,7 @@ A job that settles orders left in `CREATED` (shopper closed the tab, callback lo
 - **Transactions:** the gateway call is outside any transaction; each order gets its own short transaction; `Transaction.rollback()` on any placement failure; `undoFailOrder` errors make the transaction rollback-only, so bookkeeping is written in a *new* transaction afterwards.
 - **Idempotency:** status is re-checked before placing (a webhook may have placed it); `@supports-parallel-execution` is `false`.
 - **Iterators:** `searchOrders` results are closed in `finally`. Search is index-based and capped at 1000 results by the Search Service, so the job runs frequently with a bounded look-back.
-- **Logging:** a custom `payments` category; order numbers and payment IDs only, no customer data; comm logs mask `Authorization` and key material.
+- **Logging:** `getLogger('payment-reconciliation', 'order-payments')`; order numbers and payment IDs only, no customer data; comm logs mask `Authorization` and key material.
 - **Status:** the step returns `FINISHED_WITH_REVIEW` so Business Manager and alerting can distinguish "needs a human" from success.
 
 Your storefront webhook handler (verify `X-Razorpay-Signature` with `dw.crypto.Mac` HMAC-SHA256 over the raw body before trusting it) should call the same `decide()` so both paths behave identically.

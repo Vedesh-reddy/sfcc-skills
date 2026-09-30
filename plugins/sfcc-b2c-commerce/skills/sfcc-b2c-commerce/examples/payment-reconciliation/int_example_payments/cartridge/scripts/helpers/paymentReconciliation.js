@@ -1,35 +1,19 @@
 'use strict';
 
-/**
- * Pure decision logic for Razorpay reconciliation. No dw.* calls, no side effects,
- * so it can be unit-tested and reused by a webhook handler.
- *
- * Core rule: an order is only FAILED when the gateway gives a *definitive* "not paid"
- * after the payment window closed. Anything uncertain (timeouts, errors, authorized-but-not-
- * captured, amount mismatch, refunds) never fails the order.
- */
+// Kept free of dw.* so a webhook handler can reuse it and it can be unit-tested.
+// An order is failed only on a definitive "not paid" after the payment window;
+// anything uncertain is retried and then goes to manual review.
 
 var ACTIONS = {
-    PLACE: 'PLACE', // CREATED + captured      -> placeOrder
-    UNDO_FAIL_AND_PLACE: 'UNDO_FAIL_AND_PLACE', // FAILED + captured -> undoFailOrder, placeOrder
-    FAIL: 'FAIL', // CREATED + definitively unpaid after window -> failOrder
-    RESOLVED_UNPAID: 'RESOLVED_UNPAID', // FAILED + unpaid: nothing to do
-    WAIT: 'WAIT', // payment may still complete; check again later
-    UNCERTAIN: 'UNCERTAIN', // could not determine; retry later
-    MANUAL_REVIEW: 'MANUAL_REVIEW' // money may have moved but state is inconsistent: a human decides
+    PLACE: 'PLACE',
+    UNDO_FAIL_AND_PLACE: 'UNDO_FAIL_AND_PLACE',
+    FAIL: 'FAIL',
+    RESOLVED_UNPAID: 'RESOLVED_UNPAID',
+    WAIT: 'WAIT',
+    UNCERTAIN: 'UNCERTAIN',
+    MANUAL_REVIEW: 'MANUAL_REVIEW'
 };
 
-/**
- * @param {Object} input
- * @param {string} input.orderStatus - 'CREATED' or 'FAILED'
- * @param {number} input.amountMinor - order total in paise
- * @param {string} input.currency - order currency code
- * @param {number} input.ageMinutes - minutes since order creation
- * @param {number} input.attempts - previous reconciliation attempts
- * @param {Object} input.gateway - {ok: boolean, payments: Array<{id, status, amount, currency}>}
- * @param {Object} config - {paymentWindowMinutes: number, maxAttempts: number}
- * @returns {{action: string, paymentId: string, reason: string}}
- */
 function decide(input, config) {
     var retryOrReview = function (reason) {
         return input.attempts + 1 >= config.maxAttempts
@@ -63,11 +47,11 @@ function decide(input, config) {
         };
     }
 
+    // Authorized payments can still lapse, so they aren't proof of payment yet.
     if (authorized.length > 0 || pending.length > 0) {
         return retryOrReview('payment authorized/in progress, not captured yet');
     }
 
-    // Only 'failed' payments, or none at all.
     if (input.ageMinutes < config.paymentWindowMinutes) {
         return { action: ACTIONS.WAIT, paymentId: null, reason: 'payment window still open' };
     }

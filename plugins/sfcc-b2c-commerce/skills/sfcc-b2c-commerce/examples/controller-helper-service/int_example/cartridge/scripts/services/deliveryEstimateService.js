@@ -2,15 +2,6 @@
 
 var LocalServiceRegistry = require('dw/svc/LocalServiceRegistry');
 
-var SERVICE_ID = 'example.delivery.estimate.http';
-
-/**
- * Masks secrets in anything the service framework writes to communication logs.
- * Without filterLogMessage (or both get*LogMessage callbacks) SFCC suppresses comm logs
- * on production; with them, YOU are responsible for what gets logged.
- * @param {string} msg - raw log message
- * @returns {string} masked message
- */
 function maskSecrets(msg) {
     if (!msg) {
         return msg;
@@ -21,18 +12,12 @@ function maskSecrets(msg) {
         .replace(/([?&](?:api[_-]?key|token|signature)=)[^&\s]+/gi, '$1****');
 }
 
-/**
- * Created per call (cheap) so configuration changes in Business Manager apply immediately.
- * Credentials come from the service credential in BM (Administration > Operations > Services),
- * never from code or site preferences.
- * @returns {dw.svc.Service} configured HTTP service
- */
 function createService() {
-    return LocalServiceRegistry.createService(SERVICE_ID, {
+    return LocalServiceRegistry.createService('example.delivery.estimate.http', {
         createRequest: function (svc, params) {
             var credential = svc.getConfiguration().getCredential();
             svc.setRequestMethod('GET');
-            // API-key auth: turn off the default BASIC auth so user/password aren't also sent.
+            // The API authenticates by key header; without this the credential is also sent as BASIC auth.
             svc.setAuthentication('NONE');
             svc.addHeader('Accept', 'application/json');
             svc.addHeader('X-Api-Key', credential.getPassword());
@@ -51,17 +36,11 @@ function createService() {
             return maskSecrets(request);
         },
         getResponseLogMessage: function (response) {
-            // Log status + size only; delivery responses don't need their body in logs.
             return response ? 'HTTP ' + response.getStatusCode() + ' (' + (response.getText() || '').length + ' chars)' : null;
         }
     });
 }
 
-/**
- * @param {string} productID - validated product ID
- * @param {string} pincode - validated PIN code
- * @returns {dw.svc.Result} result; check result.ok before using result.object
- */
 function fetchEstimate(productID, pincode) {
     return createService().call({ productID: productID, pincode: pincode });
 }

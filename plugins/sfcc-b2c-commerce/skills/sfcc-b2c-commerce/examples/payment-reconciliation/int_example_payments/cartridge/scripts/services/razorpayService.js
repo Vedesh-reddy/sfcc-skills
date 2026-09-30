@@ -2,13 +2,6 @@
 
 var LocalServiceRegistry = require('dw/svc/LocalServiceRegistry');
 
-var SERVICE_ID = 'example.razorpay.http';
-
-/**
- * Masks the BASIC auth header and anything that looks like a key or secret.
- * @param {string} msg - raw log message
- * @returns {string} masked message
- */
 function maskSecrets(msg) {
     if (!msg) {
         return msg;
@@ -19,14 +12,9 @@ function maskSecrets(msg) {
         .replace(/("?(?:key_secret|secret|password)"?\s*[:=]\s*"?)[^"&\s,}]+/gi, '$1****');
 }
 
-/**
- * Service credential in Business Manager: user = Razorpay key_id, password = key_secret,
- * URL = https://api.razorpay.com/v1/orders/ . The framework sends them as BASIC auth
- * (the HTTPService default), so the secret never appears in code.
- * @returns {dw.svc.Service} configured service
- */
+// key_id/key_secret live on the BM service credential and go out as BASIC auth.
 function createService() {
-    return LocalServiceRegistry.createService(SERVICE_ID, {
+    return LocalServiceRegistry.createService('example.razorpay.http', {
         createRequest: function (svc, razorpayOrderId) {
             svc.setRequestMethod('GET');
             svc.setURL(svc.getURL().replace(/\/?$/, '/') + encodeURIComponent(razorpayOrderId) + '/payments');
@@ -35,7 +23,7 @@ function createService() {
         },
         parseResponse: function (svc, client) {
             var body = JSON.parse(client.getText());
-            // Keep only what reconciliation needs; payment items also carry customer email/phone.
+            // Payment items carry customer email and phone; keep only what reconciliation needs.
             return (body.items || []).map(function (p) {
                 return { id: p.id, status: p.status, amount: p.amount, currency: p.currency };
             });
@@ -45,19 +33,11 @@ function createService() {
             return maskSecrets(request);
         },
         getResponseLogMessage: function (response) {
-            if (!response) {
-                return null;
-            }
-            // Never log the body: it contains customer contact details.
-            return 'HTTP ' + response.getStatusCode();
+            return response ? 'HTTP ' + response.getStatusCode() : null;
         }
     });
 }
 
-/**
- * @param {string} razorpayOrderId - Razorpay order id (order_...)
- * @returns {{ok: boolean, payments: Array, status: string}} normalized result
- */
 function getOrderPayments(razorpayOrderId) {
     var result = createService().call(razorpayOrderId);
     return { ok: result.isOk(), payments: result.isOk() ? result.getObject() : [], status: result.getStatus() };

@@ -1,10 +1,17 @@
 {
   "name": "sfcc-b2c-commerce",
-  "version": "2.0.0",
-  "description": "SFCC / B2C Commerce: SFRA, jobs, orders and payments, services, metadata, SCAPI and the b2c CLI — with guardrails and verified examples.",
+  "version": "2.1.1",
+  "description": "SFCC / B2C Commerce: SFRA, jobs, orders and payments, services, metadata, SCAPI and the b2c CLI \u2014 with guardrails and verified examples.",
   "author": {
     "name": "Vedesh Reddy Janga"
   },
   "license": "Apache-2.0",
-  "keywords": ["sfcc", "salesforce", "b2c-commerce", "demandware", "sfra", "scapi"]
+  "keywords": [
+    "sfcc",
+    "salesforce",
+    "b2c-commerce",
+    "demandware",
+    "sfra",
+    "scapi"
+  ]
 }

@@ -32,4 +32,4 @@ python3 evals/grade.py --work <dir>
 
 - A failed **check** is a code defect. A low **guidance selected** score with passing checks means the agent got lucky or knew the answer — look at the router in `SKILL.md`.
 - Checks are necessary, not sufficient. For task 02 also read `REVIEW.md` against the defect list in `fixtures/razorpay-review/EXPECTED.md`.
-- `grade.py` passes 48/48 on reference answers built from `examples/` and fails the unfixed fixture (3/13) — rerun that self-test after changing checks.
+- `grade.py` passes 52/52 on reference answers built from `examples/` and fails the unfixed fixture (3/13) — rerun that self-test after changing checks.
